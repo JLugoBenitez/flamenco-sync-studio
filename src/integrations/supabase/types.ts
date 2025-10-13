@@ -14,7 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          cif_nif: string | null
+          created_at: string | null
+          direccion: string | null
+          email: string
+          id: string
+          nombre: string
+          telefono: string | null
+        }
+        Insert: {
+          cif_nif?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          email: string
+          id?: string
+          nombre: string
+          telefono?: string | null
+        }
+        Update: {
+          cif_nif?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string
+          id?: string
+          nombre?: string
+          telefono?: string | null
+        }
+        Relationships: []
+      }
+      configuracion: {
+        Row: {
+          clave: string
+          id: string
+          updated_at: string | null
+          valor: string | null
+        }
+        Insert: {
+          clave: string
+          id?: string
+          updated_at?: string | null
+          valor?: string | null
+        }
+        Update: {
+          clave?: string
+          id?: string
+          updated_at?: string | null
+          valor?: string | null
+        }
+        Relationships: []
+      }
+      empleados: {
+        Row: {
+          activo: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          nombre: string
+          rol: string
+          telefono: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          nombre: string
+          rol: string
+          telefono?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nombre?: string
+          rol?: string
+          telefono?: string | null
+        }
+        Relationships: []
+      }
+      encargos: {
+        Row: {
+          cliente_id: string | null
+          created_at: string | null
+          estado: string
+          fecha_entrega: string | null
+          fecha_pedido: string | null
+          id: number
+          notas: string | null
+          precio_total: number
+          producto_descripcion: string
+          updated_at: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string | null
+          estado?: string
+          fecha_entrega?: string | null
+          fecha_pedido?: string | null
+          id?: number
+          notas?: string | null
+          precio_total: number
+          producto_descripcion: string
+          updated_at?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string | null
+          estado?: string
+          fecha_entrega?: string | null
+          fecha_pedido?: string | null
+          id?: number
+          notas?: string | null
+          precio_total?: number
+          producto_descripcion?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encargos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facturas: {
+        Row: {
+          cliente_id: string | null
+          created_at: string | null
+          estado: string
+          fecha: string | null
+          fecha_vencimiento: string | null
+          id: string
+          tipo: string
+          total: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string | null
+          estado?: string
+          fecha?: string | null
+          fecha_vencimiento?: string | null
+          id: string
+          tipo: string
+          total: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string | null
+          estado?: string
+          fecha?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          tipo?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fichajes: {
+        Row: {
+          created_at: string | null
+          empleado_id: string
+          fecha: string
+          hora_entrada: string
+          hora_salida: string | null
+          horas_trabajadas: number | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          empleado_id: string
+          fecha: string
+          hora_entrada: string
+          hora_salida?: string | null
+          horas_trabajadas?: number | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          empleado_id?: string
+          fecha?: string
+          hora_entrada?: string
+          hora_salida?: string | null
+          horas_trabajadas?: number | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fichajes_empleado_id_fkey"
+            columns: ["empleado_id"]
+            isOneToOne: false
+            referencedRelation: "empleados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidencias: {
+        Row: {
+          asignado_id: string | null
+          descripcion: string | null
+          estado: string
+          fecha_creacion: string | null
+          fecha_resolucion: string | null
+          id: number
+          prioridad: string
+          titulo: string
+        }
+        Insert: {
+          asignado_id?: string | null
+          descripcion?: string | null
+          estado?: string
+          fecha_creacion?: string | null
+          fecha_resolucion?: string | null
+          id?: number
+          prioridad?: string
+          titulo: string
+        }
+        Update: {
+          asignado_id?: string | null
+          descripcion?: string | null
+          estado?: string
+          fecha_creacion?: string | null
+          fecha_resolucion?: string | null
+          id?: number
+          prioridad?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidencias_asignado_id_fkey"
+            columns: ["asignado_id"]
+            isOneToOne: false
+            referencedRelation: "empleados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      productos: {
+        Row: {
+          categoria: string
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          imagen_url: string | null
+          nombre: string
+          precio: number
+          stock: number
+          talla: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          categoria: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          imagen_url?: string | null
+          nombre: string
+          precio: number
+          stock?: number
+          talla?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          imagen_url?: string | null
+          nombre?: string
+          precio?: number
+          stock?: number
+          talla?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
