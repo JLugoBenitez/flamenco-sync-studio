@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Dashboard from "@/components/Dashboard";
 import Productos from "@/components/Productos";
@@ -37,7 +36,7 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-0">
         {renderContent()}
       </main>
     </div>
