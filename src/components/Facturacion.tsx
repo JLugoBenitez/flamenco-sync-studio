@@ -1,22 +1,67 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Download, DollarSign, FileText, CreditCard } from "lucide-react";
+import { Plus, DollarSign, FileText, CreditCard, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Facturacion = () => {
-  const facturas = [
-    { id: "F-2025-001", cliente: "María González", fecha: "2025-10-10", vencimiento: "2025-11-10", total: 750, estado: "pagada", tipo: "factura" },
-    { id: "F-2025-002", cliente: "Carmen Ruiz", fecha: "2025-10-11", vencimiento: "2025-11-11", total: 920, estado: "pendiente", tipo: "factura" },
-    { id: "A-2025-023", cliente: "Ana Martínez", fecha: "2025-10-08", vencimiento: "-", total: 340, estado: "entregado", tipo: "albaran" },
-    { id: "F-2025-003", cliente: "Isabel López", fecha: "2025-10-12", vencimiento: "2025-11-12", total: 680, estado: "vencida", tipo: "factura" },
-    { id: "F-2025-004", cliente: "Rosa Fernández", fecha: "2025-10-13", vencimiento: "2025-11-13", total: 450, estado: "pendiente", tipo: "factura" },
-    { id: "A-2025-024", cliente: "Lucía Morales", fecha: "2025-10-09", vencimiento: "-", total: 280, estado: "entregado", tipo: "albaran" }
-  ];
+  const [facturas, setFacturas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
-  const totalPendiente = facturas.filter(f => f.estado === 'pendiente').reduce((sum, f) => sum + f.total, 0);
-  const totalPagado = facturas.filter(f => f.estado === 'pagada').reduce((sum, f) => sum + f.total, 0);
-  const totalVencido = facturas.filter(f => f.estado === 'vencida').reduce((sum, f) => sum + f.total, 0);
+  useEffect(() => {
+    cargarFacturas();
+  }, []);
+
+  const cargarFacturas = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("facturas")
+      .select(`
+        *,
+        clientes(nombre)
+      `)
+      .order("fecha", { ascending: false });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setFacturas(data || []);
+    }
+    setLoading(false);
+  };
+
+  const sincronizarHolded = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("holded-sync", {
+        body: { action: "get_invoices" },
+      });
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Sincronización completada",
+        description: `${data?.invoices?.length || 0} facturas sincronizadas con Holded`
+      });
+      cargarFacturas();
+    } catch (error: any) {
+      toast({
+        title: "Error al sincronizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const totalPendiente = facturas.filter(f => f.estado === 'pendiente').reduce((sum, f) => sum + parseFloat(f.total.toString()), 0);
+  const totalPagado = facturas.filter(f => f.estado === 'pagada').reduce((sum, f) => sum + parseFloat(f.total.toString()), 0);
+  const totalVencido = facturas.filter(f => f.estado === 'vencida').reduce((sum, f) => sum + parseFloat(f.total.toString()), 0);
 
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
@@ -52,10 +97,12 @@ const Facturacion = () => {
             Facturas, albaranes y control de cobros
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nueva Factura
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={sincronizarHolded} disabled={syncing}>
+            <Send className="h-4 w-4" />
+            {syncing ? "Sincronizando..." : "Sincronizar Holded"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -67,7 +114,7 @@ const Facturacion = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{totalPagado}€</div>
+            <div className="text-3xl font-bold text-green-600">{totalPagado.toFixed(2)}€</div>
             <p className="text-xs text-muted-foreground mt-1">Este mes</p>
           </CardContent>
         </Card>
@@ -80,7 +127,7 @@ const Facturacion = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">{totalPendiente}€</div>
+            <div className="text-3xl font-bold text-yellow-600">{totalPendiente.toFixed(2)}€</div>
             <p className="text-xs text-muted-foreground mt-1">{facturas.filter(f => f.estado === 'pendiente').length} facturas</p>
           </CardContent>
         </Card>
@@ -93,7 +140,7 @@ const Facturacion = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{totalVencido}€</div>
+            <div className="text-3xl font-bold text-red-600">{totalVencido.toFixed(2)}€</div>
             <p className="text-xs text-muted-foreground mt-1">{facturas.filter(f => f.estado === 'vencida').length} facturas</p>
           </CardContent>
         </Card>
@@ -114,26 +161,36 @@ const Facturacion = () => {
                 <TableHead>Vencimiento</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {facturas.map((factura) => (
-                <TableRow key={factura.id}>
-                  <TableCell className="font-medium">{factura.id}</TableCell>
-                  <TableCell>{getTipoBadge(factura.tipo)}</TableCell>
-                  <TableCell>{factura.cliente}</TableCell>
-                  <TableCell>{new Date(factura.fecha).toLocaleDateString('es-ES')}</TableCell>
-                  <TableCell>{factura.vencimiento !== '-' ? new Date(factura.vencimiento).toLocaleDateString('es-ES') : '-'}</TableCell>
-                  <TableCell className="text-right font-semibold">{factura.total}€</TableCell>
-                  <TableCell>{getEstadoBadge(factura.estado)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    Cargando facturas...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : facturas.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No hay facturas registradas
+                  </TableCell>
+                </TableRow>
+              ) : (
+                facturas.map((factura) => (
+                  <TableRow key={factura.id}>
+                    <TableCell className="font-medium">{factura.id}</TableCell>
+                    <TableCell>{getTipoBadge(factura.tipo)}</TableCell>
+                    <TableCell>{factura.clientes?.nombre || "N/A"}</TableCell>
+                    <TableCell>{new Date(factura.fecha).toLocaleDateString('es-ES')}</TableCell>
+                    <TableCell>
+                      {factura.fecha_vencimiento ? new Date(factura.fecha_vencimiento).toLocaleDateString('es-ES') : '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{parseFloat(factura.total).toFixed(2)}€</TableCell>
+                    <TableCell>{getEstadoBadge(factura.estado)}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

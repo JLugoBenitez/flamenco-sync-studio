@@ -1,73 +1,58 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Settings, Link as LinkIcon } from "lucide-react";
+import { User, Bell, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const Configuracion = () => {
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [wooConfig, setWooConfig] = useState({
-    url: "",
-    key: "",
-    secret: ""
+  const [profileData, setProfileData] = useState({
+    nombre: "",
+    telefono: "",
   });
-  const [holdedKey, setHoldedKey] = useState("");
 
   useEffect(() => {
-    cargarConfiguracion();
-  }, []);
+    cargarPerfil();
+  }, [user]);
 
-  const cargarConfiguracion = async () => {
+  const cargarPerfil = async () => {
+    if (!user) return;
+    
     const { data } = await supabase
-      .from("configuracion")
+      .from("profiles")
       .select("*")
-      .in("clave", ["woo_url", "woo_key", "woo_secret", "holded_api_key"]);
+      .eq("user_id", user.id)
+      .single();
 
     if (data) {
-      setWooConfig({
-        url: data.find(c => c.clave === "woo_url")?.valor || "",
-        key: data.find(c => c.clave === "woo_key")?.valor || "",
-        secret: data.find(c => c.clave === "woo_secret")?.valor || ""
+      setProfileData({
+        nombre: data.nombre || "",
+        telefono: data.telefono || "",
       });
-      setHoldedKey(data.find(c => c.clave === "holded_api_key")?.valor || "");
     }
   };
 
-  const guardarWooCommerce = async () => {
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+    
     setLoading(true);
     try {
-      const updates = [
-        { clave: "woo_url", valor: wooConfig.url },
-        { clave: "woo_key", valor: wooConfig.key },
-        { clave: "woo_secret", valor: wooConfig.secret }
-      ];
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          nombre: profileData.nombre,
+          telefono: profileData.telefono,
+        })
+        .eq("user_id", user.id);
 
-      for (const item of updates) {
-        await supabase
-          .from("configuracion")
-          .upsert(item, { onConflict: "clave" });
-      }
+      if (error) throw error;
 
-      toast({ title: "Configuración de WooCommerce guardada" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const guardarHolded = async () => {
-    setLoading(true);
-    try {
-      await supabase
-        .from("configuracion")
-        .upsert({ clave: "holded_api_key", valor: holdedKey }, { onConflict: "clave" });
-
-      toast({ title: "Configuración de Holded guardada" });
+      toast({ title: "Perfil actualizado correctamente" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -78,11 +63,11 @@ const Configuracion = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
           Configuración
         </h1>
         <p className="text-muted-foreground mt-2">
-          Ajustes generales del sistema
+          Ajustes de la aplicación y tu cuenta
         </p>
       </div>
 
@@ -90,107 +75,60 @@ const Configuracion = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <LinkIcon className="h-5 w-5 text-primary" />
-              Integraciones Externas
+              <User className="h-5 w-5" />
+              Perfil de Usuario
             </CardTitle>
             <CardDescription>
-              Conecta con WooCommerce y Holded para sincronización automática
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-3">WooCommerce</h3>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="woo-url">URL de la Tienda</Label>
-                    <Input
-                      id="woo-url"
-                      placeholder="https://tutienda.com"
-                      value={wooConfig.url}
-                      onChange={(e) => setWooConfig({ ...wooConfig, url: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="woo-key">Consumer Key</Label>
-                    <Input
-                      id="woo-key"
-                      type="password"
-                      placeholder="ck_..."
-                      value={wooConfig.key}
-                      onChange={(e) => setWooConfig({ ...wooConfig, key: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="woo-secret">Consumer Secret</Label>
-                    <Input
-                      id="woo-secret"
-                      type="password"
-                      placeholder="cs_..."
-                      value={wooConfig.secret}
-                      onChange={(e) => setWooConfig({ ...wooConfig, secret: e.target.value })}
-                    />
-                  </div>
-                  <Button onClick={guardarWooCommerce} disabled={loading} className="w-fit">
-                    {loading ? "Guardando..." : "Guardar WooCommerce"}
-                  </Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="font-semibold mb-3">Holded</h3>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="holded-key">API Key</Label>
-                    <Input
-                      id="holded-key"
-                      type="password"
-                      placeholder="Introduce tu API Key"
-                      value={holdedKey}
-                      onChange={(e) => setHoldedKey(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={guardarHolded} disabled={loading} className="w-fit">
-                    {loading ? "Guardando..." : "Guardar Holded"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-accent" />
-              Configuración General
-            </CardTitle>
-            <CardDescription>
-              Ajustes del negocio y facturación
+              Actualiza tu información personal
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="empresa">Nombre de la Empresa</Label>
-              <Input id="empresa" defaultValue="FlamencoPuro S.L." />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" value={user?.email || ""} disabled />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="cif">CIF/NIF</Label>
-              <Input id="cif" defaultValue="B12345678" />
+            <div className="space-y-2">
+              <Label htmlFor="nombre">Nombre</Label>
+              <Input
+                id="nombre"
+                value={profileData.nombre}
+                onChange={(e) => setProfileData({ ...profileData, nombre: e.target.value })}
+                placeholder="Tu nombre completo"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="direccion">Dirección</Label>
-              <Input id="direccion" defaultValue="Calle Sierpes, 42, Sevilla" />
-            </div>
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label htmlFor="telefono">Teléfono</Label>
-              <Input id="telefono" defaultValue="+34 954 123 456" />
+              <Input
+                id="telefono"
+                value={profileData.telefono}
+                onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
+                placeholder="Número de teléfono"
+              />
             </div>
-            <Button className="w-fit mt-4">Guardar Cambios</Button>
+            <Button onClick={handleUpdateProfile} disabled={loading}>
+              {loading ? "Guardando..." : "Guardar Cambios"}
+            </Button>
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Administración
+              </CardTitle>
+              <CardDescription>
+                Configuración avanzada del sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Las integraciones de WooCommerce y Holded se gestionan de forma segura en el backend por razones de seguridad.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -16,9 +16,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
   const location = useLocation();
+  const { signOut, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
@@ -91,7 +93,14 @@ const Sidebar = () => {
         </nav>
 
         <div className="p-4 border-t border-sidebar-border">
-          <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
+          <div className="mb-3 text-sm text-sidebar-foreground/60 truncate px-3">
+            {user?.email}
+          </div>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
+            onClick={signOut}
+          >
             <LogOut className="h-5 w-5" />
             Cerrar Sesión
           </Button>

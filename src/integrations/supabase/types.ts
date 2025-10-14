@@ -192,6 +192,7 @@ export type Database = {
           hora_salida: string | null
           horas_trabajadas: number | null
           id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -201,6 +202,7 @@ export type Database = {
           hora_salida?: string | null
           horas_trabajadas?: number | null
           id?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -210,6 +212,7 @@ export type Database = {
           hora_salida?: string | null
           horas_trabajadas?: number | null
           id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -224,6 +227,7 @@ export type Database = {
       incidencias: {
         Row: {
           asignado_id: string | null
+          creado_por: string | null
           descripcion: string | null
           estado: string
           fecha_creacion: string | null
@@ -234,6 +238,7 @@ export type Database = {
         }
         Insert: {
           asignado_id?: string | null
+          creado_por?: string | null
           descripcion?: string | null
           estado?: string
           fecha_creacion?: string | null
@@ -244,6 +249,7 @@ export type Database = {
         }
         Update: {
           asignado_id?: string | null
+          creado_por?: string | null
           descripcion?: string | null
           estado?: string
           fecha_creacion?: string | null
@@ -301,15 +307,72 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          nombre: string
+          telefono: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          nombre: string
+          telefono?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          nombre?: string
+          telefono?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "empleado" | "cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -436,6 +499,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "empleado", "cliente"],
+    },
   },
 } as const

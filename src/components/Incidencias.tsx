@@ -1,18 +1,35 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { IncidenciaForm } from "./IncidenciaForm";
 
 const Incidencias = () => {
-  const incidencias = [
-    { id: 1, titulo: "Talla incorrecta en encargo #245", asignado: "Laura Sánchez", prioridad: "alta", estado: "abierta", fecha: "2025-10-13" },
-    { id: 2, titulo: "Stock agotado - Zapatos talla 37", asignado: "Pedro García", prioridad: "media", estado: "en_proceso", fecha: "2025-10-12" },
-    { id: 3, titulo: "Cliente solicita cambio de color", asignado: "Elena Moreno", prioridad: "baja", estado: "resuelta", fecha: "2025-10-11" },
-    { id: 4, titulo: "Error en sincronización WooCommerce", asignado: "Laura Sánchez", prioridad: "alta", estado: "abierta", fecha: "2025-10-13" },
-    { id: 5, titulo: "Factura duplicada cliente #128", asignado: "Sofía Delgado", prioridad: "media", estado: "en_proceso", fecha: "2025-10-10" },
-    { id: 6, titulo: "Retraso en entrega proveedor", asignado: "Pedro García", prioridad: "alta", estado: "abierta", fecha: "2025-10-12" }
-  ];
+  const [incidencias, setIncidencias] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarIncidencias();
+  }, []);
+
+  const cargarIncidencias = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("incidencias")
+      .select("*")
+      .order("fecha_creacion", { ascending: false });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setIncidencias(data || []);
+    }
+    setLoading(false);
+  };
 
   const getPrioridadBadge = (prioridad: string) => {
     switch (prioridad) {
@@ -49,10 +66,7 @@ const Incidencias = () => {
             Registro y seguimiento de problemas
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nueva Incidencia
-        </Button>
+        <IncidenciaForm onSuccess={cargarIncidencias} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -103,23 +117,35 @@ const Incidencias = () => {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Título</TableHead>
-                <TableHead>Asignado a</TableHead>
                 <TableHead>Prioridad</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {incidencias.map((incidencia) => (
-                <TableRow key={incidencia.id}>
-                  <TableCell className="font-medium">#{incidencia.id}</TableCell>
-                  <TableCell>{incidencia.titulo}</TableCell>
-                  <TableCell>{incidencia.asignado}</TableCell>
-                  <TableCell>{getPrioridadBadge(incidencia.prioridad)}</TableCell>
-                  <TableCell>{getEstadoBadge(incidencia.estado)}</TableCell>
-                  <TableCell>{new Date(incidencia.fecha).toLocaleDateString('es-ES')}</TableCell>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    Cargando incidencias...
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : incidencias.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No hay incidencias registradas
+                  </TableCell>
+                </TableRow>
+              ) : (
+                incidencias.map((incidencia) => (
+                  <TableRow key={incidencia.id}>
+                    <TableCell className="font-medium">#{incidencia.id}</TableCell>
+                    <TableCell>{incidencia.titulo}</TableCell>
+                    <TableCell>{getPrioridadBadge(incidencia.prioridad)}</TableCell>
+                    <TableCell>{getEstadoBadge(incidencia.estado)}</TableCell>
+                    <TableCell>{new Date(incidencia.fecha_creacion).toLocaleDateString('es-ES')}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
