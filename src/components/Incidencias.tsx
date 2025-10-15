@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, AlertCircle } from "lucide-react";
+import { AlertCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { IncidenciaForm } from "./IncidenciaForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Incidencias = () => {
   const [incidencias, setIncidencias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     cargarIncidencias();
@@ -52,6 +54,19 @@ const Incidencias = () => {
         return <Badge className="bg-green-600">Resuelta</Badge>;
       default:
         return <Badge variant="outline">{estado}</Badge>;
+    }
+  };
+
+  const eliminarIncidencia = async (id: number) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta incidencia?")) return;
+
+    const { error } = await supabase.from("incidencias").delete().eq("id", id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Incidencia eliminada correctamente" });
+      cargarIncidencias();
     }
   };
 
@@ -120,18 +135,19 @@ const Incidencias = () => {
                 <TableHead>Prioridad</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
+                {isAdmin && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8">
                     Cargando incidencias...
                   </TableCell>
                 </TableRow>
               ) : incidencias.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8 text-muted-foreground">
                     No hay incidencias registradas
                   </TableCell>
                 </TableRow>
@@ -143,6 +159,17 @@ const Incidencias = () => {
                     <TableCell>{getPrioridadBadge(incidencia.prioridad)}</TableCell>
                     <TableCell>{getEstadoBadge(incidencia.estado)}</TableCell>
                     <TableCell>{new Date(incidencia.fecha_creacion).toLocaleDateString('es-ES')}</TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => eliminarIncidencia(incidencia.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}

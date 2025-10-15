@@ -46,9 +46,10 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
       const hora = ahora.toTimeString().split(' ')[0];
 
       const { error } = await supabase.from("fichajes").insert({
+        empleado_id: user.id,
+        user_id: user.id,
         fecha: hoy,
         hora_entrada: hora,
-        user_id: user.id,
       });
 
       if (error) throw error;

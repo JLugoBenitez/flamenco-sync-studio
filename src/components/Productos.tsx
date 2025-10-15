@@ -8,11 +8,14 @@ import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ProductoForm } from "./ProductoForm";
+import { WooCommerceSync } from "./WooCommerceSync";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Productos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     cargarProductos();
@@ -68,8 +71,10 @@ const Productos = () => {
             Gestión de inventario y stock
           </p>
         </div>
-        <ProductoForm onSuccess={cargarProductos} />
+        {isAdmin && <ProductoForm onSuccess={cargarProductos} />}
       </div>
+
+      {isAdmin && <WooCommerceSync />}
 
       <Card>
         <CardHeader>

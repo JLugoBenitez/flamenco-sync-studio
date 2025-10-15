@@ -37,12 +37,12 @@ export const EncargosForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
     try {
       const { error } = await supabase.from("encargos").insert({
-        cliente_id: formData.cliente_id,
+        cliente_id: formData.cliente_id || null,
         producto_descripcion: formData.producto_descripcion,
         precio_total: parseFloat(formData.precio_total),
         estado: formData.estado,
-        fecha_entrega: formData.fecha_entrega || null,
-        notas: formData.notas
+        fecha_entrega: formData.fecha_entrega ? new Date(formData.fecha_entrega).toISOString() : null,
+        notas: formData.notas || null
       });
 
       if (error) throw error;
