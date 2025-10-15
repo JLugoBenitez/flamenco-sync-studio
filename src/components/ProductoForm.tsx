@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,16 +26,39 @@ export const ProductoForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("productos").insert({
-        nombre: formData.nombre,
-        talla: formData.talla,
-        precio: parseFloat(formData.precio),
-        stock: parseInt(formData.stock),
-        categoria: formData.categoria,
-        descripcion: formData.descripcion
-      });
+      const { data: inserted, error } = await supabase
+        .from("productos")
+        .insert({
+          nombre: formData.nombre,
+          talla: formData.talla,
+          precio: parseFloat(formData.precio),
+          stock: parseInt(formData.stock),
+          categoria: formData.categoria,
+          descripcion: formData.descripcion
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Crear también el producto en WooCommerce
+      try {
+        await supabase.functions.invoke("woocommerce-sync", {
+          body: {
+            action: "create_product",
+            productData: {
+              dbProductId: inserted.id,
+              nombre: formData.nombre,
+              precio: parseFloat(formData.precio),
+              stock: parseInt(formData.stock),
+              descripcion: formData.descripcion,
+            },
+          },
+        });
+      } catch (e) {
+        // No bloquea la creación local si falla la integración
+        console.warn("Woo sync fallo al crear producto:", e);
+      }
 
       toast({ title: "Producto creado correctamente" });
       setOpen(false);
@@ -59,6 +82,7 @@ export const ProductoForm = ({ onSuccess }: { onSuccess: () => void }) => {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Añadir Nuevo Producto</DialogTitle>
+          <DialogDescription className="sr-only">Rellena los datos del producto</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">

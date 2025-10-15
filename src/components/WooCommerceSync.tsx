@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, CheckCircle } from "lucide-react";
@@ -18,21 +18,28 @@ export const WooCommerceSync = () => {
 
       if (error) throw error;
 
-      toast({ 
-        title: "Sincronización completada", 
-        description: `${data.synced || 0} productos sincronizados correctamente` 
+      toast({
+        title: "Sincronización completada",
+        description: `${data?.synced || 0} productos sincronizados correctamente`
       });
       setLastSync(new Date());
     } catch (error: any) {
-      toast({ 
-        title: "Error en la sincronización", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error en la sincronización",
+        description: error.message,
+        variant: "destructive"
       });
     } finally {
       setSyncing(false);
     }
   };
+
+  useEffect(() => {
+    // Auto-sync al montar y cada 15 minutos
+    sincronizarProductos();
+    const id = setInterval(sincronizarProductos, 15 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <Card>

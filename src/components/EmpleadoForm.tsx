@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +78,7 @@ export const EmpleadoForm = ({ onSuccess }: { onSuccess: () => void }) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Añadir Nuevo Empleado</DialogTitle>
+          <DialogDescription className="sr-only">Crea un empleado con email y contraseña</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
