@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { Search, Edit, Trash2, AlertTriangle, Package, TrendingUp, DollarSign, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ProductoForm } from "./ProductoForm";
@@ -109,7 +109,7 @@ const Productos = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary-gradient">
             Productos
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -121,81 +121,150 @@ const Productos = () => {
 
       {isAdmin && <WooCommerceSync />}
 
-      <Card>
+      {/* Estadísticas de Productos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="card-highlight">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xl sm:text-2xl font-bold text-primary">{productos.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Productos</p>
+              </div>
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="card-highlight">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xl sm:text-2xl font-bold text-emerald-500">{productos.filter(p => p.stock > 3).length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">En Stock</p>
+              </div>
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-500 flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="card-highlight">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xl sm:text-2xl font-bold text-amber-500">{productos.filter(p => p.stock <= 3 && p.stock > 0).length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Bajo Stock</p>
+              </div>
+              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500 flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="card-highlight">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xl sm:text-2xl font-bold text-red-500">{productos.filter(p => p.stock === 0).length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Sin Stock</p>
+              </div>
+              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="card-highlight">
         <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar productos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            Lista de Productos
+          </CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Producto</TableHead>
-                <TableHead className="hidden sm:table-cell">Talla</TableHead>
-                <TableHead className="hidden md:table-cell">Categoría</TableHead>
-                <TableHead className="text-right">Precio</TableHead>
-                <TableHead className="text-center">Stock</TableHead>
-                <TableHead className="text-center">Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    Cargando productos...
-                  </TableCell>
+                  <TableHead className="font-semibold">Producto</TableHead>
+                  <TableHead className="font-semibold hidden sm:table-cell">Talla</TableHead>
+                  <TableHead className="font-semibold hidden md:table-cell">Categoría</TableHead>
+                  <TableHead className="font-semibold text-right">Precio</TableHead>
+                  <TableHead className="font-semibold text-center">Stock</TableHead>
+                  <TableHead className="font-semibold text-center">Estado</TableHead>
+                  <TableHead className="font-semibold text-right">Acciones</TableHead>
                 </TableRow>
-              ) : productosFiltrados.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No se encontraron productos
-                  </TableCell>
-                </TableRow>
-              ) : (
-                productosFiltrados.map((producto) => (
-                  <TableRow key={producto.id}>
-                    <TableCell className="font-medium">{producto.nombre}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{producto.talla}</TableCell>
-                    <TableCell className="hidden md:table-cell">{producto.categoria}</TableCell>
-                    <TableCell className="text-right">{producto.precio}€</TableCell>
-                    <TableCell className="text-center">{producto.stock}</TableCell>
-                    <TableCell className="text-center">{getStockBadge(producto.stock)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <ProductoForm 
-                          producto={producto}
-                          onSuccess={cargarProductos}
-                          trigger={
-                            <Button variant="ghost" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          }
-                        />
-                        {isAdmin && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => eliminarProducto(producto.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p className="text-muted-foreground">Cargando productos...</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : productosFiltrados.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Package className="h-12 w-12 text-muted-foreground" />
+                        <p className="text-muted-foreground">No se encontraron productos</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  productosFiltrados.map((producto) => (
+                    <TableRow key={producto.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary font-bold">{producto.nombre}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{producto.talla}</TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{producto.categoria}</TableCell>
+                      <TableCell className="text-right font-bold text-primary">{producto.precio}€</TableCell>
+                      <TableCell className="text-center font-semibold">{producto.stock}</TableCell>
+                      <TableCell className="text-center">{getStockBadge(producto.stock)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <ProductoForm 
+                            producto={producto}
+                            onSuccess={cargarProductos}
+                            trigger={
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-primary hover:text-white transition-colors">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          {isAdmin && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 hover:bg-red-500 hover:text-white transition-colors"
+                              onClick={() => eliminarProducto(producto.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -29,7 +29,12 @@ export const useFichaje = () => {
         return;
       }
 
-      setFichajeActivo(data?.[0] || null);
+      // Las funciones retornan JSON envuelto en pgrst_call
+      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
+        setFichajeActivo(data[0].pgrst_call);
+      } else {
+        setFichajeActivo(null);
+      }
     } catch (error) {
       console.error("Error en checkFichajeActivo:", error);
     }
@@ -61,8 +66,12 @@ export const useFichaje = () => {
         return;
       }
 
-      toast.success("Entrada registrada correctamente");
-      setFichajeActivo(data?.[0] || null);
+      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
+        toast.success("Entrada registrada correctamente");
+        setFichajeActivo(data[0].pgrst_call);
+      } else {
+        toast.error(data?.[0]?.pgrst_call?.error || "Error al registrar entrada");
+      }
     } catch (error) {
       console.error("Error en ficharEntrada:", error);
       toast.error("Error al registrar entrada");
@@ -96,8 +105,12 @@ export const useFichaje = () => {
         return;
       }
 
-      toast.success("Salida registrada correctamente");
-      setFichajeActivo(null);
+      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
+        toast.success("Salida registrada correctamente");
+        setFichajeActivo(null);
+      } else {
+        toast.error(data?.[0]?.pgrst_call?.error || "Error al registrar salida");
+      }
     } catch (error) {
       console.error("Error en ficharSalida:", error);
       toast.error("Error al registrar salida");

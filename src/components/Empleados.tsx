@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Mail, Phone, Shield, AlertCircle } from "lucide-react";
+import { Plus, Mail, Phone, Shield, AlertCircle, Users, UserCheck, UserX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { EmpleadoForm } from "./EmpleadoForm";
@@ -84,7 +84,7 @@ const Empleados = () => {
   if (!isAdmin) {
     return (
       <div className="space-y-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h1 className="heading-responsive font-bold text-primary-gradient">
           Empleados
         </h1>
         <Alert variant="destructive">
@@ -99,9 +99,9 @@ const Empleados = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <h1 className="heading-responsive font-bold text-primary-gradient">
             Empleados
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -123,7 +123,7 @@ const Empleados = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {empleados.map((empleado) => (
             <Card key={empleado.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">

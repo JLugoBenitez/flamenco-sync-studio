@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Package, Users, FileText, AlertCircle, ShoppingCart } from "lucide-react";
+import { TrendingUp, Package, Users, FileText, AlertCircle, ShoppingCart, Plus, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     productos: 0,
     encargos: 0,
@@ -71,7 +73,7 @@ const Dashboard = () => {
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-3xl blur-3xl" />
         <div className="relative">
-          <h1 className="heading-responsive font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="heading-responsive font-bold tracking-tight text-primary-gradient">
             Panel de Control
           </h1>
           <p className="text-responsive text-muted-foreground mt-2 max-w-2xl">
@@ -81,27 +83,27 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="group card-modern hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-xl group-hover:scale-110 transition-transform duration-500" />
-                <CardTitle className="text-sm font-medium text-foreground/80 relative z-10">
+            <Card key={index} className="group card-highlight hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative p-3 sm:p-4">
+                <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-xl group-hover:scale-110 transition-transform duration-500" />
+                <CardTitle className="text-xs sm:text-sm font-medium text-foreground/80 relative z-10 truncate">
                   {stat.title}
                 </CardTitle>
                 <div className="relative z-10">
-                  <Icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
+                  <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
                 </div>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative p-3 sm:p-4 pt-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative z-10">
-                  <div className="text-3xl font-bold text-foreground group-hover:scale-105 transition-transform duration-300">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground group-hover:scale-105 transition-transform duration-300">
                     {stat.value}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
                     {stat.change}
                   </p>
                 </div>
@@ -124,23 +126,47 @@ const Dashboard = () => {
               Accede rápidamente a las funciones más utilizadas
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
-                <Package className="h-4 w-4" />
-                Nuevo Producto
+          <CardContent className="space-y-4 p-3 sm:p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              <Button 
+                onClick={() => navigate('/productos')}
+                className="h-12 sm:h-14 justify-start gap-2 sm:gap-3 btn-gradient-primary hover:scale-105 transition-all duration-200 p-2 sm:p-3"
+              >
+                <Package className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <div className="text-left min-w-0 flex-1">
+                  <div className="font-semibold text-sm sm:text-base truncate">Productos</div>
+                  <div className="text-xs opacity-90 truncate">Gestionar inventario</div>
+                </div>
               </Button>
-              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
-                <ShoppingCart className="h-4 w-4" />
-                Nuevo Encargo
+              <Button 
+                onClick={() => navigate('/encargos')}
+                className="h-12 sm:h-14 justify-start gap-2 sm:gap-3 btn-gradient-secondary hover:scale-105 transition-all duration-200 p-2 sm:p-3"
+              >
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <div className="text-left min-w-0 flex-1">
+                  <div className="font-semibold text-sm sm:text-base truncate">Encargos</div>
+                  <div className="text-xs opacity-90 truncate">Gestionar pedidos</div>
+                </div>
               </Button>
-              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
-                <Users className="h-4 w-4" />
-                Agregar Empleado
+              <Button 
+                onClick={() => navigate('/empleados')}
+                className="h-12 sm:h-14 justify-start gap-2 sm:gap-3 btn-gradient-accent hover:scale-105 transition-all duration-200 p-2 sm:p-3"
+              >
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <div className="text-left min-w-0 flex-1">
+                  <div className="font-semibold text-sm sm:text-base truncate">Empleados</div>
+                  <div className="text-xs opacity-90 truncate">Gestionar personal</div>
+                </div>
               </Button>
-              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
-                <FileText className="h-4 w-4" />
-                Nueva Factura
+              <Button 
+                onClick={() => navigate('/fichajes')}
+                className="h-12 sm:h-14 justify-start gap-2 sm:gap-3 highlight-primary hover:scale-105 transition-all duration-200 p-2 sm:p-3"
+              >
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <div className="text-left min-w-0 flex-1">
+                  <div className="font-semibold text-sm sm:text-base truncate">Fichajes</div>
+                  <div className="text-xs opacity-90 truncate">Control de horarios</div>
+                </div>
               </Button>
             </div>
           </CardContent>

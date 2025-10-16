@@ -79,14 +79,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-bg p-4">
+    <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-xl float">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-xl floating">
             <span className="text-white font-bold text-2xl">F</span>
           </div>
-          <h1 className="heading-responsive font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="heading-responsive font-bold text-primary-gradient">
             FlamencoPuro
           </h1>
           <p className="text-responsive text-muted-foreground mt-2">
@@ -94,7 +94,7 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="card-modern shadow-xl border-border/50">
+        <Card className="card-professional shadow-xl border-border/50 glass">
           <CardHeader className="text-center pb-6">
             <CardTitle className="text-xl font-semibold">Acceso al Sistema</CardTitle>
             <CardDescription>Inicia sesión o crea una cuenta nueva</CardDescription>

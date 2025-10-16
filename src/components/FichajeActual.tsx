@@ -14,6 +14,17 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Forzar re-render cuando hay fichaje activo para actualizar el tiempo
+  useEffect(() => {
+    if (fichajeActivo) {
+      console.log('Fichaje activo:', fichajeActivo);
+      const interval = setInterval(() => {
+        setHoraActual(new Date());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [fichajeActivo]);
+
   const handleFicharEntrada = async () => {
     await ficharEntrada();
     onUpdate();
@@ -33,14 +44,31 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
   };
 
   const calculateElapsedTime = (startTime: string) => {
-    const start = new Date(startTime);
-    const now = new Date();
-    const diffMs = now.getTime() - start.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-    
-    return `${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`;
+    try {
+      if (!startTime) return '00:00:00';
+      
+      const start = new Date(startTime);
+      const now = new Date();
+      
+      // Verificar que las fechas son válidas
+      if (isNaN(start.getTime()) || isNaN(now.getTime())) {
+        return '00:00:00';
+      }
+      
+      const diffMs = now.getTime() - start.getTime();
+      
+      // Si el tiempo es negativo, retornar 00:00:00
+      if (diffMs < 0) return '00:00:00';
+      
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      return `${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`;
+    } catch (error) {
+      console.error('Error calculating elapsed time:', error);
+      return '00:00:00';
+    }
   };
 
   return (

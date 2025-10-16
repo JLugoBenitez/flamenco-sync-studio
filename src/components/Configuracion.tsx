@@ -2,14 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Bell, Shield } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { User, Bell, Shield, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const Configuracion = () => {
   const { user, isAdmin } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     nombre: "",
@@ -63,7 +66,7 @@ const Configuracion = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-primary-gradient">
           Configuración
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -72,7 +75,7 @@ const Configuracion = () => {
       </div>
 
       <div className="grid gap-6">
-        <Card>
+        <Card className="card-professional">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -111,8 +114,47 @@ const Configuracion = () => {
           </CardContent>
         </Card>
 
+        <Card className="card-professional">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Apariencia
+            </CardTitle>
+            <CardDescription>
+              Personaliza la apariencia de la aplicación
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  {theme === 'dark' ? (
+                    <Moon className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Sun className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="theme-toggle" className="text-base font-medium">
+                    Modo {theme === 'dark' ? 'Oscuro' : 'Claro'}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Cambiar entre tema claro y oscuro
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="theme-toggle"
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {isAdmin && (
-          <Card>
+          <Card className="card-professional">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
