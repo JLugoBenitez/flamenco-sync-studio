@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { TrendingUp, Package, Users, FileText, AlertCircle, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -66,86 +67,141 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          Panel de Control
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión integral de FlamencoPuro
-        </p>
+      {/* Header */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-3xl blur-3xl" />
+        <div className="relative">
+          <h1 className="heading-responsive font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Panel de Control
+          </h1>
+          <p className="text-responsive text-muted-foreground mt-2 max-w-2xl">
+            Gestión integral de FlamencoPuro. Monitorea el estado de tu negocio y accede rápidamente a las funciones principales.
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+            <Card key={index} className="group card-modern hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-xl group-hover:scale-110 transition-transform duration-500" />
+                <CardTitle className="text-sm font-medium text-foreground/80 relative z-10">
                   {stat.title}
                 </CardTitle>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
+                <div className="relative z-10">
+                  <Icon className={`h-5 w-5 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.change}
-                </p>
+              <CardContent className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="text-3xl font-bold text-foreground group-hover:scale-105 transition-transform duration-300">
+                    {stat.value}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.change}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumen General</CardTitle>
-          <CardDescription>Vista general del estado de tu negocio</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Inventario</span>
-                <span className="text-sm text-muted-foreground">{stats.productos} productos</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary transition-all" style={{ width: "75%" }} />
-              </div>
+      {/* Quick Actions & Status */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Quick Actions */}
+        <Card className="card-modern">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Acciones Rápidas
+            </CardTitle>
+            <CardDescription>
+              Accede rápidamente a las funciones más utilizadas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
+                <Package className="h-4 w-4" />
+                Nuevo Producto
+              </Button>
+              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
+                <ShoppingCart className="h-4 w-4" />
+                Nuevo Encargo
+              </Button>
+              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
+                <Users className="h-4 w-4" />
+                Agregar Empleado
+              </Button>
+              <Button variant="outline" className="h-12 justify-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 btn-modern">
+                <FileText className="h-4 w-4" />
+                Nueva Factura
+              </Button>
             </div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Encargos Activos</span>
-                <span className="text-sm text-muted-foreground">{stats.encargos} en proceso</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-secondary transition-all" style={{ width: "60%" }} />
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Estado de Incidencias</span>
-                <span className="text-sm text-muted-foreground">{stats.incidenciasAbiertas} abiertas</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-destructive transition-all" style={{ width: `${stats.incidenciasAbiertas > 0 ? 40 : 0}%` }} />
-              </div>
-            </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Cobros Pendientes</span>
-                <span className="text-sm text-muted-foreground">{stats.totalFacturasPendientes.toFixed(2)}€</span>
+        {/* System Status */}
+        <Card className="card-modern">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Estado del Sistema
+            </CardTitle>
+            <CardDescription>
+              Información sobre el estado actual del sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Inventario</span>
+                  <span className="text-sm text-muted-foreground">{stats.productos} productos</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary transition-all duration-1000" style={{ width: "75%" }} />
+                </div>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-accent transition-all" style={{ width: "45%" }} />
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Encargos Activos</span>
+                  <span className="text-sm text-muted-foreground">{stats.encargos} en proceso</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-secondary transition-all duration-1000" style={{ width: "60%" }} />
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Estado de Incidencias</span>
+                  <span className="text-sm text-muted-foreground">{stats.incidenciasAbiertas} abiertas</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-destructive transition-all duration-1000" style={{ width: `${stats.incidenciasAbiertas > 0 ? 40 : 0}%` }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Cobros Pendientes</span>
+                  <span className="text-sm text-muted-foreground">{stats.totalFacturasPendientes.toFixed(2)}€</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-accent transition-all duration-1000" style={{ width: "45%" }} />
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
