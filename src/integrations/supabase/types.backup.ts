@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
       clientes: {
@@ -332,18 +337,6 @@ export type Database = {
         }
         Relationships: []
       }
-      schema_migrations: {
-        Row: {
-          version: string
-        }
-        Insert: {
-          version: string
-        }
-        Update: {
-          version?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -370,9 +363,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       fichar_entrada: {
         Args: {
-          p_empleado_id?: string
+          p_empleado_id?: string | null
         }
         Returns: string
       }
@@ -384,7 +384,7 @@ export type Database = {
         Args: {
           p_user_id: string
         }
-        Returns: {
+        Returns: Array<{
           id: string
           empleado_id: string | null
           fecha: string
@@ -393,22 +393,11 @@ export type Database = {
           horas_trabajadas: number | null
           created_at: string | null
           user_id: string | null
-        }[]
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
+        }>
       }
     }
     Enums: {
-      aal_level: "aal1" | "aal2" | "aal3"
       app_role: "admin" | "empleado" | "cliente"
-      code_challenge_method: "s256" | "plain"
-      factor_status: "unverified" | "verified"
-      factor_type: "totp" | "webauthn"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -536,12 +525,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      aal_level: ["aal1", "aal2", "aal3"],
       app_role: ["admin", "empleado", "cliente"],
-      code_challenge_method: ["s256", "plain"],
-      factor_status: ["unverified", "verified"],
-      factor_type: ["totp", "webauthn"],
     },
   },
 } as const
-

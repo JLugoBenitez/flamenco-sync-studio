@@ -1,127 +1,149 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, LogIn, LogOut as LogOutIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
+import { Clock, LogIn, LogOut as LogOutIcon, Timer, User } from "lucide-react";
+import { useFichaje } from "@/hooks/useFichaje";
 
 export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
-  const [fichajeActivo, setFichajeActivo] = useState<any>(null);
   const [horaActual, setHoraActual] = useState(new Date());
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { fichajeActivo, loading, ficharEntrada, ficharSalida } = useFichaje();
 
   useEffect(() => {
     const interval = setInterval(() => setHoraActual(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (user) verificarFichajeActivo();
-  }, [user]);
-
-  const verificarFichajeActivo = async () => {
-    if (!user) return;
-    
-    const hoy = new Date().toISOString().split('T')[0];
-    const { data } = await supabase
-      .from("fichajes")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("fecha", hoy)
-      .is("hora_salida", null)
-      .maybeSingle();
-
-    setFichajeActivo(data);
+  const handleFicharEntrada = async () => {
+    await ficharEntrada();
+    onUpdate();
   };
 
-  const ficharEntrada = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      const ahora = new Date();
-      const hoy = ahora.toISOString().split('T')[0];
-      const hora = ahora.toTimeString().split(' ')[0];
-
-      const { error } = await supabase.from("fichajes").insert({
-        empleado_id: user.id,
-        user_id: user.id,
-        fecha: hoy,
-        hora_entrada: hora,
-      });
-
-      if (error) throw error;
-
-      toast({ title: "Entrada registrada", description: `Hora de entrada: ${hora}` });
-      verificarFichajeActivo();
-      onUpdate();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+  const handleFicharSalida = async () => {
+    await ficharSalida();
+    onUpdate();
   };
 
-  const ficharSalida = async () => {
-    if (!fichajeActivo) return;
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  };
+
+  const calculateElapsedTime = (startTime: string) => {
+    const start = new Date(startTime);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
     
-    setLoading(true);
-    try {
-      const ahora = new Date();
-      const hora = ahora.toTimeString().split(' ')[0];
-      
-      const entrada = new Date(`1970-01-01T${fichajeActivo.hora_entrada}`);
-      const salida = new Date(`1970-01-01T${hora}`);
-      const horasDiff = (salida.getTime() - entrada.getTime()) / (1000 * 60 * 60);
-
-      const { error } = await supabase
-        .from("fichajes")
-        .update({
-          hora_salida: hora,
-          horas_trabajadas: parseFloat(horasDiff.toFixed(2)),
-        })
-        .eq("id", fichajeActivo.id);
-
-      if (error) throw error;
-
-      toast({ title: "Salida registrada", description: `Horas trabajadas: ${horasDiff.toFixed(2)}h` });
-      setFichajeActivo(null);
-      onUpdate();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+    return `${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-primary" />
-          Fichaje - {horaActual.toLocaleTimeString('es-ES')}
+    <Card className="border-2 border-primary/20 shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Clock className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Control de Jornada</h3>
+              <p className="text-sm text-muted-foreground font-normal">
+                {horaActual.toLocaleDateString('es-ES', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-mono font-bold text-primary">
+              {formatTime(horaActual)}
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-3">
+      
+      <CardContent className="space-y-6">
+        {/* Estado actual */}
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-3">
+            <User className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium">Estado:</span>
+          </div>
+          <Badge 
+            variant={fichajeActivo ? "default" : "secondary"}
+            className={fichajeActivo ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-gray-100 text-gray-800 hover:bg-gray-100"}
+          >
+            {fichajeActivo ? "Trabajando" : "Fuera de servicio"}
+          </Badge>
+        </div>
+
+        {/* Botón principal */}
+        <div className="flex justify-center">
           {!fichajeActivo ? (
-            <Button onClick={ficharEntrada} disabled={loading} className="flex-1 gap-2">
-              <LogIn className="h-4 w-4" />
-              Fichar Entrada
+            <Button 
+              onClick={handleFicharEntrada} 
+              disabled={loading}
+              size="lg"
+              className="w-full max-w-xs h-14 text-lg font-semibold gap-3 bg-green-600 hover:bg-green-700"
+            >
+              <LogIn className="h-6 w-6" />
+              {loading ? "Fichando..." : "Fichar Entrada"}
             </Button>
           ) : (
-            <Button onClick={ficharSalida} disabled={loading} variant="destructive" className="flex-1 gap-2">
-              <LogOutIcon className="h-4 w-4" />
-              Fichar Salida
+            <Button 
+              onClick={handleFicharSalida} 
+              disabled={loading}
+              size="lg"
+              variant="destructive"
+              className="w-full max-w-xs h-14 text-lg font-semibold gap-3"
+            >
+              <LogOutIcon className="h-6 w-6" />
+              {loading ? "Fichando..." : "Fichar Salida"}
             </Button>
           )}
         </div>
 
+        {/* Información del fichaje activo */}
         {fichajeActivo && (
-          <div className="text-sm text-center p-3 bg-muted rounded-lg">
-            Entrada: {fichajeActivo.hora_entrada}
+          <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-blue-800">
+              <Timer className="h-4 w-4" />
+              <span className="font-medium">Jornada en curso</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-sm text-blue-600 font-medium">Entrada</div>
+                <div className="text-lg font-mono font-bold text-blue-800">
+                  {fichajeActivo.fecha_entrada ? 
+                    new Date(fichajeActivo.fecha_entrada).toLocaleTimeString('es-ES', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    }) : 
+                    'N/A'
+                  }
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-sm text-blue-600 font-medium">Tiempo transcurrido</div>
+                <div className="text-lg font-mono font-bold text-blue-800">
+                  {fichajeActivo.fecha_entrada ? 
+                    calculateElapsedTime(fichajeActivo.fecha_entrada) : 
+                    '00:00:00'
+                  }
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

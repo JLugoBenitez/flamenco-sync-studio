@@ -1,0 +1,15 @@
+{
+  "name": "edge-local",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2",
+    "@supabase/supabase-js": "^2.75.0",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  }
+}
+
+
+
+

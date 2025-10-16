@@ -21,15 +21,11 @@ const Fichajes = () => {
     
     let query = supabase
       .from("fichajes")
-      .select(`
-        *,
-        profiles(nombre)
-      `)
-      .order("fecha", { ascending: false })
-      .order("hora_entrada", { ascending: false });
+      .select("*")
+      .order("fecha_entrada", { ascending: false });
 
     if (!isAdmin && user) {
-      query = query.eq("user_id", user.id);
+      query = query.eq("empleado_id", user.id);
     }
 
     const { data, error } = await query.limit(50);
@@ -87,18 +83,42 @@ const Fichajes = () => {
               ) : (
                 fichajes.map((fichaje) => (
                   <TableRow key={fichaje.id}>
-                    {isAdmin && <TableCell className="font-medium">{fichaje.profiles?.nombre || "N/A"}</TableCell>}
-                    <TableCell>{new Date(fichaje.fecha).toLocaleDateString('es-ES')}</TableCell>
-                    <TableCell>{fichaje.hora_entrada}</TableCell>
-                    <TableCell>{fichaje.hora_salida || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      {fichaje.horas_trabajadas ? `${parseFloat(fichaje.horas_trabajadas).toFixed(2)}h` : '-'}
+                    {isAdmin && <TableCell className="font-medium">{fichaje.empleado_id?.substring(0, 8) || "N/A"}</TableCell>}
+                    <TableCell>
+                      {fichaje.fecha_entrada ? 
+                        new Date(fichaje.fecha_entrada).toLocaleDateString('es-ES') : 
+                        '-'
+                      }
+                    </TableCell>
+                    <TableCell className="font-mono">
+                      {fichaje.fecha_entrada ? 
+                        new Date(fichaje.fecha_entrada).toLocaleTimeString('es-ES', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        }) : 
+                        '-'
+                      }
+                    </TableCell>
+                    <TableCell className="font-mono">
+                      {fichaje.fecha_salida ? 
+                        new Date(fichaje.fecha_salida).toLocaleTimeString('es-ES', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        }) : 
+                        '-'
+                      }
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {fichaje.horas_trabajadas ? 
+                        `${parseFloat(fichaje.horas_trabajadas).toFixed(2)}h` : 
+                        '-'
+                      }
                     </TableCell>
                     <TableCell>
-                      {fichaje.hora_salida ? (
-                        <Badge className="bg-green-600">Completado</Badge>
+                      {fichaje.fecha_salida ? (
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completado</Badge>
                       ) : (
-                        <Badge className="bg-blue-600">En curso</Badge>
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">En curso</Badge>
                       )}
                     </TableCell>
                   </TableRow>

@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-10-16T00:28:55.948Z",
+  "totalTables": 11,
+  "totalRecords": 46,
+  "results": [
+    {
+      "table": "clientes",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "configuracion",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "empleados",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "encargos",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "facturas",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "fichajes",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "incidencias",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "productos",
+      "records": 0,
+      "status": "empty"
+    },
+    {
+      "table": "profiles",
+      "records": 1,
+      "status": "success"
+    },
+    {
+      "table": "schema_migrations",
+      "records": 44,
+      "status": "success"
+    },
+    {
+      "table": "user_roles",
+      "records": 1,
+      "status": "success"
+    }
+  ]
+}

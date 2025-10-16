@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,60 +9,167 @@ import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-export const ProductoForm = ({ onSuccess }: { onSuccess: () => void }) => {
+interface ProductoFormProps {
+  onSuccess: () => void;
+  producto?: any;
+  trigger?: React.ReactNode;
+}
+
+export const ProductoForm = ({ onSuccess, producto, trigger }: ProductoFormProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nombre: "",
-    talla: "",
-    precio: "",
-    stock: "",
-    categoria: "",
-    descripcion: ""
+    nombre: producto?.nombre || "",
+    talla: producto?.talla || "",
+    precio: producto?.precio?.toString() || "",
+    stock: producto?.stock?.toString() || "",
+    categoria: producto?.categoria || "",
+    descripcion: producto?.descripcion || "",
+    imagen_url: producto?.imagen_url || "",
+    woo_product_id: producto?.woo_product_id || null
   });
+
+  // Actualizar formulario cuando cambia el producto
+  useEffect(() => {
+    if (producto) {
+      setFormData({
+        nombre: producto.nombre || "",
+        talla: producto.talla || "",
+        precio: producto.precio?.toString() || "",
+        stock: producto.stock?.toString() || "",
+        categoria: producto.categoria || "",
+        descripcion: producto.descripcion || "",
+        imagen_url: producto.imagen_url || "",
+        woo_product_id: producto.woo_product_id || null
+      });
+    }
+  }, [producto]);
+
+  const syncToWooCommerce = async (productoData: any) => {
+    try {
+      const { data: config } = await supabase
+        .from('configuracion')
+        .select('clave, valor')
+        .in('clave', ['woo_url', 'woo_key', 'woo_secret']);
+
+      if (!config || config.length < 3) return;
+
+      const wooUrl = config.find((c: any) => c.clave === 'woo_url')?.valor;
+      const wooKey = config.find((c: any) => c.clave === 'woo_key')?.valor;
+      const wooSecret = config.find((c: any) => c.clave === 'woo_secret')?.valor;
+
+      if (!wooUrl || !wooKey || !wooSecret) return;
+
+      const auth = btoa(`${wooKey}:${wooSecret}`);
+      const wooPayload = {
+        name: productoData.nombre,
+        regular_price: productoData.precio.toString(),
+        stock_quantity: productoData.stock,
+        description: productoData.descripcion || '',
+        manage_stock: true,
+        stock_status: productoData.stock > 0 ? 'instock' : 'outofstock',
+        categories: [
+          {
+            name: productoData.categoria || 'General'
+          }
+        ]
+      };
+
+      if (productoData.woo_product_id) {
+        // Actualizar producto existente
+        const response = await fetch(`${wooUrl}/wp-json/wc/v3/products/${productoData.woo_product_id}`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(wooPayload)
+        });
+
+        if (response.ok) {
+          console.log(`✓ Producto actualizado en WooCommerce: ${productoData.nombre}`);
+        }
+      } else {
+        // Crear nuevo producto
+        const response = await fetch(`${wooUrl}/wp-json/wc/v3/products`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(wooPayload)
+        });
+
+        if (response.ok) {
+          const wooProduct = await response.json();
+          // Actualizar woo_product_id en la base de datos local
+          await supabase
+            .from('productos')
+            .update({ woo_product_id: String(wooProduct.id) })
+            .eq('id', productoData.id);
+          
+          console.log(`✓ Producto creado en WooCommerce: ${productoData.nombre} (ID: ${wooProduct.id})`);
+        }
+      }
+    } catch (error) {
+      console.error('Error sincronizando con WooCommerce:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data: inserted, error } = await supabase
-        .from("productos")
-        .insert({
-          nombre: formData.nombre,
-          talla: formData.talla,
-          precio: parseFloat(formData.precio),
-          stock: parseInt(formData.stock),
-          categoria: formData.categoria,
-          descripcion: formData.descripcion
-        })
-        .select()
-        .single();
+      const payload = {
+        nombre: formData.nombre,
+        talla: formData.talla,
+        precio: parseFloat(formData.precio),
+        stock: parseInt(formData.stock),
+        categoria: formData.categoria,
+        descripcion: formData.descripcion,
+        imagen_url: formData.imagen_url || null
+      };
 
-      if (error) throw error;
+      let result;
+      if (producto?.id) {
+        // Actualizar producto existente
+        const { data, error } = await supabase
+          .from("productos")
+          .update(payload)
+          .eq('id', producto.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+        toast({ title: "Producto actualizado correctamente" });
+      } else {
+        // Crear nuevo producto
+        const { data, error } = await supabase
+          .from("productos")
+          .insert(payload)
+          .select()
+          .single();
 
-      // Crear también el producto en WooCommerce
-      try {
-        await supabase.functions.invoke("woocommerce-sync", {
-          body: {
-            action: "create_product",
-            productData: {
-              dbProductId: inserted.id,
-              nombre: formData.nombre,
-              precio: parseFloat(formData.precio),
-              stock: parseInt(formData.stock),
-              descripcion: formData.descripcion,
-            },
-          },
-        });
-      } catch (e) {
-        // No bloquea la creación local si falla la integración
-        console.warn("Woo sync fallo al crear producto:", e);
+        if (error) throw error;
+        result = data;
+        toast({ title: "Producto creado correctamente" });
       }
 
-      toast({ title: "Producto creado correctamente" });
+      // Sincronizar con WooCommerce en segundo plano
+      if (result) {
+        if (formData.woo_product_id) {
+          // Actualizar producto existente en WooCommerce
+          syncToWooCommerce({ ...result, woo_product_id: formData.woo_product_id });
+        } else {
+          // Crear nuevo producto en WooCommerce (tanto para nuevos como para actualizaciones sin woo_product_id)
+          syncToWooCommerce(result);
+        }
+      }
+
       setOpen(false);
-      setFormData({ nombre: "", talla: "", precio: "", stock: "", categoria: "", descripcion: "" });
+      setFormData({ nombre: "", talla: "", precio: "", stock: "", categoria: "", descripcion: "", imagen_url: "", woo_product_id: null });
       onSuccess();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -74,14 +181,16 @@ export const ProductoForm = ({ onSuccess }: { onSuccess: () => void }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nuevo Producto
-        </Button>
+        {trigger || (
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nuevo Producto
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Añadir Nuevo Producto</DialogTitle>
+          <DialogTitle>{producto?.id ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
           <DialogDescription className="sr-only">Rellena los datos del producto</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -153,7 +262,7 @@ export const ProductoForm = ({ onSuccess }: { onSuccess: () => void }) => {
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar Producto"}
+              {loading ? "Guardando..." : (producto?.id ? "Actualizar Producto" : "Guardar Producto")}
             </Button>
           </div>
         </form>

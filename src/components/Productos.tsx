@@ -9,13 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ProductoForm } from "./ProductoForm";
 import { WooCommerceSync } from "./WooCommerceSync";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Productos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAdmin } = useAuth();
+  const { isAdmin } = useUserRole();
 
   useEffect(() => {
     cargarProductos();
@@ -37,13 +37,58 @@ const Productos = () => {
   };
 
   const eliminarProducto = async (id: string) => {
+    if (!isAdmin) {
+      toast({ 
+        title: "Permiso denegado", 
+        description: "Solo los administradores pueden eliminar productos",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     if (!confirm("¿Seguro que quieres eliminar este producto?")) return;
+
+    // Obtener el producto antes de eliminarlo para saber si tiene woo_product_id
+    const { data: producto } = await supabase
+      .from("productos")
+      .select("woo_product_id")
+      .eq("id", id)
+      .single();
 
     const { error } = await supabase.from("productos").delete().eq("id", id);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      // Intentar eliminar también de WooCommerce si tiene woo_product_id
+      if (producto?.woo_product_id) {
+        try {
+          const { data: config } = await supabase
+            .from('configuracion')
+            .select('clave, valor')
+            .in('clave', ['woo_url', 'woo_key', 'woo_secret']);
+
+          if (config && config.length === 3) {
+            const wooUrl = config.find((c: any) => c.clave === 'woo_url')?.valor;
+            const wooKey = config.find((c: any) => c.clave === 'woo_key')?.valor;
+            const wooSecret = config.find((c: any) => c.clave === 'woo_secret')?.valor;
+
+            if (wooUrl && wooKey && wooSecret) {
+              const auth = btoa(`${wooKey}:${wooSecret}`);
+              await fetch(`${wooUrl}/wp-json/wc/v3/products/${producto.woo_product_id}?force=true`, {
+                method: 'DELETE',
+                headers: { 
+                  'Authorization': `Basic ${auth}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error eliminando de WooCommerce:', e);
+        }
+      }
+
       toast({ title: "Producto eliminado" });
       cargarProductos();
     }
@@ -125,12 +170,25 @@ const Productos = () => {
                     <TableCell className="text-center">{getStockBadge(producto.stock)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => eliminarProducto(producto.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <ProductoForm 
+                          producto={producto}
+                          onSuccess={cargarProductos}
+                          trigger={
+                            <Button variant="ghost" size="icon">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
+                        {isAdmin && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => eliminarProducto(producto.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

@@ -1,0 +1,158 @@
+
+> vite_react_shadcn_ts@0.0.0 dev
+> vite
+
+
+  VITE v5.4.19  ready in 327 ms
+
+  ➜  Local:   http://localhost:8080/
+  ➜  Network: http://192.168.0.19:8080/
+  ➜  Network: http://172.18.0.1:8080/
+10:01:57 [vite] Pre-transform error: Failed to resolve import "@/hooks/useFichaje" from "src/components/FichajeActual.tsx". Does the file exist?
+10:05:03 [vite] Internal server error: Failed to resolve import "@/hooks/useFichaje" from "src/components/FichajeActual.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/javier/Escritorio/flamenco-sync-studio/src/components/FichajeActual.tsx:5:27
+  24 |  import { Button } from "@/components/ui/button";
+  25 |  import { Clock, LogIn, LogOut as LogOutIcon } from "lucide-react";
+  26 |  import { useFichaje } from "@/hooks/useFichaje";
+     |                              ^
+  27 |  export const FichajeActual = ({ onUpdate })=>{
+  28 |      _s();
+      at TransformPluginContext._formatError (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49258:41)
+      at TransformPluginContext.error (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49253:16)
+      at normalizeUrl (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64291:23)
+      at async file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64423:39
+      at async Promise.all (index 7)
+      at async TransformPluginContext.transform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64350:7)
+      at async PluginContainer.transform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49099:18)
+      at async loadAndTransform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:51977:27)
+      at async viteTransformMiddleware (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:62105:24)
+10:05:10 [vite] Internal server error: Failed to resolve import "@/hooks/useFichaje" from "src/components/FichajeActual.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/javier/Escritorio/flamenco-sync-studio/src/components/FichajeActual.tsx:5:27
+  24 |  import { Button } from "@/components/ui/button";
+  25 |  import { Clock, LogIn, LogOut as LogOutIcon } from "lucide-react";
+  26 |  import { useFichaje } from "@/hooks/useFichaje";
+     |                              ^
+  27 |  export const FichajeActual = ({ onUpdate })=>{
+  28 |      _s();
+      at TransformPluginContext._formatError (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49258:41)
+      at TransformPluginContext.error (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49253:16)
+      at normalizeUrl (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64291:23)
+      at async file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64423:39
+      at async Promise.all (index 7)
+      at async TransformPluginContext.transform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64350:7)
+      at async PluginContainer.transform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49099:18)
+      at async loadAndTransform (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:51977:27)
+      at async viteTransformMiddleware (file:///home/javier/Escritorio/flamenco-sync-studio/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:62105:24)
+10:05:46 [vite] hmr update /src/index.css, /src/components/Fichajes.tsx
+10:05:46 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+10:05:53 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+10:08:31 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:08:50 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:11:02 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:11:09 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:13:27 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:13:36 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:13:58 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:14:07 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:14:15 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:14:27 [vite] hmr update /src/components/Productos.tsx, /src/index.css
+10:14:37 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:14:46 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:15:39 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:15:39 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:15:39 [vite] hmr update /src/components/Productos.tsx, /src/index.css
+10:17:54 [vite] hmr update /src/components/Productos.tsx, /src/index.css
+10:18:04 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:18:17 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:18:31 [vite] hmr update /src/components/Productos.tsx, /src/index.css
+10:18:31 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:22:52 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:22:59 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:23:14 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:23:21 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:23:31 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:23:45 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:24:07 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:24:17 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:24:35 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:24:47 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:24:47 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:24:47 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:27:36 [vite] page reload src/integrations/supabase/types.ts
+10:27:36 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/index.css, /src/components/Productos.tsx, /src/components/Empleados.tsx, /src/components/Encargos.tsx
+10:27:36 [vite] page reload src/integrations/supabase/types-clean.ts
+10:27:36 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/Productos.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/Empleados.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/Fichajes.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/WooCommerceSync.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/Encargos.tsx, /src/index.css
+10:27:36 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:28:37 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:28:45 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:28:56 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:29:17 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:29:38 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:29:38 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:30:52 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:31:03 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:31:17 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:32:42 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:32:53 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:33:07 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:34:02 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:34:13 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:34:36 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:34:36 [vite] hmr update /src/components/ProductoForm.tsx, /src/index.css
+10:36:22 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:36:32 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:36:41 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:36:54 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:37:13 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:37:34 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:37:58 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:38:16 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:38:22 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:38:22 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:40:06 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:40:15 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:40:23 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:40:34 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:41:02 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:41:02 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:17 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:21 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:33 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:39 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:48 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:42:55 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:52:59 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:53:17 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:53:24 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:53:37 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:53:53 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:53:59 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+10:54:05 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:54:21 [vite] hmr update /src/components/WooCommerceOrderSync.tsx, /src/index.css
+10:54:21 [vite] hmr update /src/index.css, /src/components/WooCommerceOrderSync.tsx, /src/components/EncargosForm.tsx
+10:54:21 [vite] hmr update /src/components/EncargosForm.tsx, /src/index.css
+11:00:04 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:00:31 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:00:53 [vite] hmr update /src/components/Fichajes.tsx, /src/index.css
+11:01:08 [vite] hmr update /src/components/Fichajes.tsx, /src/index.css
+11:01:19 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:01:25 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:01:37 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:01:41 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:02:03 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:02:03 [vite] hmr update /src/components/Fichajes.tsx, /src/index.css
+11:02:03 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:05:41 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:05:54 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:06:06 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
+11:07:09 [vite] hmr update /src/components/FichajeActual.tsx, /src/index.css
