@@ -8,9 +8,13 @@ import Incidencias from "@/components/Incidencias";
 import Facturacion from "@/components/Facturacion";
 import Configuracion from "@/components/Configuracion";
 import { useLocation } from "react-router-dom";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Index = () => {
   const location = useLocation();
+  
+  // Inicializar sistema de notificaciones
+  useNotifications();
 
   const renderContent = () => {
     switch (location.pathname) {

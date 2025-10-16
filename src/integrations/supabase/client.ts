@@ -13,5 +13,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  realtime: {
+    // Deshabilitar realtime completamente para evitar errores de WebSocket
+    enabled: false,
+    params: {
+      eventsPerSecond: 0
+    }
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web'
+    }
   }
 });

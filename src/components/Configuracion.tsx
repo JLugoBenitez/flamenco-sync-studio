@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { User, Bell, Shield, Sun, Moon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Bell, Shield, Sun, Moon, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import NotificationSettings from "./NotificationSettings";
 
 const Configuracion = () => {
   const { user, isAdmin } = useAuth();
@@ -74,7 +76,24 @@ const Configuracion = () => {
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notificaciones
+          </TabsTrigger>
+          <TabsTrigger value="admin" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Admin
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-6">
+          <div className="grid gap-6">
         <Card className="card-professional">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -153,25 +172,43 @@ const Configuracion = () => {
           </CardContent>
         </Card>
 
-        {isAdmin && (
-          <Card className="card-professional">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Administración
-              </CardTitle>
-              <CardDescription>
-                Configuración avanzada del sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Las integraciones de WooCommerce y Holded se gestionan de forma segura en el backend por razones de seguridad.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <NotificationSettings />
+        </TabsContent>
+
+        <TabsContent value="admin" className="space-y-6">
+          {isAdmin ? (
+            <Card className="card-professional">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Administración
+                </CardTitle>
+                <CardDescription>
+                  Configuración avanzada del sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Las integraciones de WooCommerce y Holded se gestionan de forma segura en el backend por razones de seguridad.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="card-professional">
+              <CardContent className="text-center py-12">
+                <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  No tienes permisos para acceder a la configuración de administración.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
