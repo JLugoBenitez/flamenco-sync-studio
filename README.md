@@ -1,73 +1,181 @@
-# Welcome to your Lovable project
+# 🎭 Flamenco Sync Studio
 
-## Project info
+**Sistema completo de gestión para estudios de flamenco**
 
-**URL**: https://lovable.dev/projects/52382295-a131-408e-b800-06d59d56a5e5
+Una aplicación web moderna desarrollada con React, TypeScript y Supabase que proporciona todas las herramientas necesarias para gestionar un estudio de flamenco profesional.
 
-## How can I edit this code?
+## 🌟 Características Principales
 
-There are several ways of editing your application.
+- **👥 Gestión de Empleados**: Control completo de personal y fichajes
+- **📦 Catálogo de Productos**: Gestión de inventario y stock
+- **🛒 Sistema de Encargos**: Pedidos y seguimiento de clientes
+- **💰 Facturación**: Sistema integrado de facturación
+- **🔄 Sincronización**: Integración con WooCommerce y Holded
+- **📊 Dashboard**: Métricas y estadísticas en tiempo real
+- **🔐 Autenticación**: Sistema seguro de usuarios y roles
 
-**Use Lovable**
+## 🚀 Instalación Rápida
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/52382295-a131-408e-b800-06d59d56a5e5) and start prompting.
+### Prerequisitos
+- **Docker Desktop** (incluye Docker Compose)
+- **Node.js** (versión 18+)
+- **Git**
 
-Changes made via Lovable will be committed automatically to this repo.
+### Pasos de Instalación
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. **Clonar el repositorio**
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd flamenco-sync-studio
 ```
 
-**Edit a file directly in GitHub**
+2. **Configurar variables de entorno**
+```bash
+cp env.example .env
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. **Iniciar el sistema**
 
-**Use GitHub Codespaces**
+**Windows:**
+```cmd
+scripts\start-windows.bat
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+**Linux/macOS:**
+```bash
+chmod +x scripts/*.sh
+./scripts/start-linux.sh
+```
 
-## What technologies are used for this project?
+4. **Acceder a la aplicación**
+- **Aplicación Principal**: http://localhost:8080
+- **Supabase Studio**: http://localhost:3000
 
-This project is built with:
+## 📚 Documentación Completa
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Para instrucciones detalladas de instalación y configuración, consulta:
 
-## How can I deploy this project?
+- **[📖 Guía de Despliegue Completa](README-DESPLIEGUE.md)** - Instrucciones paso a paso para Windows, Linux y macOS
+- **[🐳 Documentación Docker](README-Docker.md)** - Configuración avanzada de Docker
+- **[🏠 Desarrollo Local](README-Local.md)** - Guía para desarrolladores
 
-Simply open [Lovable](https://lovable.dev/projects/52382295-a131-408e-b800-06d59d56a5e5) and click on Share -> Publish.
+## 🛠️ Tecnologías Utilizadas
 
-## Can I connect a custom domain to my Lovable project?
+### Frontend
+- **React 18** - Framework principal
+- **TypeScript** - Tipado estático
+- **Vite** - Build tool y dev server
+- **Tailwind CSS** - Framework de estilos
+- **shadcn/ui** - Componentes de UI
+- **React Router** - Navegación
+- **React Hook Form** - Formularios
+- **TanStack Query** - Gestión de estado del servidor
 
-Yes, you can!
+### Backend
+- **Supabase** - Backend as a Service
+- **PostgreSQL** - Base de datos
+- **Row Level Security (RLS)** - Seguridad de datos
+- **Edge Functions** - Funciones serverless
+- **Real-time subscriptions** - Actualizaciones en tiempo real
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### DevOps
+- **Docker & Docker Compose** - Containerización
+- **Kong API Gateway** - Gateway de API
+- **Git** - Control de versiones
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🌐 URLs del Sistema
+
+Una vez iniciado, el sistema estará disponible en:
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **Aplicación Principal** | http://localhost:8080 | Interfaz principal de usuario |
+| **Supabase Studio** | http://localhost:3000 | Panel de administración de BD |
+| **API Gateway** | http://localhost:8000 | Punto de entrada unificado |
+| **PostgreSQL** | localhost:5432 | Base de datos directa |
+| **Auth Service** | http://localhost:9999 | Servicio de autenticación |
+| **Realtime** | ws://localhost:4000 | WebSocket para tiempo real |
+
+## 👤 Usuarios de Prueba
+
+Después de la instalación inicial:
+
+- **Email**: admin@admin.com
+- **Contraseña**: admin123
+- **Rol**: Administrador
+
+## 🔧 Scripts Disponibles
+
+### Windows
+- `scripts\start-windows.bat` - Iniciar sistema completo
+- `scripts\stop-windows.bat` - Detener servicios
+- `scripts\reset-windows.bat` - Reset completo (elimina datos)
+
+### Linux/macOS
+- `./scripts/start-linux.sh` - Iniciar sistema completo
+- `./scripts/stop-docker.sh` - Detener servicios
+- `./scripts/reset-docker.sh` - Reset completo (elimina datos)
+- `./scripts/verify-system.sh` - Verificar sistema
+- `./scripts/check-security.sh` - Verificar seguridad de claves
+
+## 🗂️ Estructura del Proyecto
+
+```
+flamenco-sync-studio/
+├── src/                    # Código fuente React
+│   ├── components/         # Componentes reutilizables
+│   ├── pages/             # Páginas de la aplicación
+│   ├── hooks/             # Custom hooks
+│   ├── contexts/          # Context providers
+│   ├── integrations/      # Integraciones externas
+│   └── lib/               # Utilidades
+├── supabase/              # Configuración Supabase
+│   ├── migrations/        # Migraciones de BD
+│   └── functions/         # Edge Functions
+├── scripts/               # Scripts de automatización
+├── docker-compose.yml     # Configuración Docker
+├── kong.yml              # Configuración API Gateway
+└── docs/                 # Documentación
+```
+
+## 🚀 Despliegue en Producción
+
+Para desplegar en producción, consulta la [Guía de Despliegue](README-DESPLIEGUE.md#-despliegue-en-producción) que incluye:
+
+- Despliegue en Supabase Cloud
+- Configuración de VPS
+- Configuración de dominio y SSL
+- Scripts de backup automático
+
+## 🆘 Soporte y Ayuda
+
+### Solución de Problemas Comunes
+
+1. **Verificar sistema**: `./scripts/verify-system.sh`
+2. **Ver logs**: `docker-compose logs`
+3. **Reiniciar servicios**: `docker-compose restart`
+4. **Reset completo**: `./scripts/reset-docker.sh` (¡elimina datos!)
+
+### Obtener Ayuda
+
+- 📖 Revisa la [documentación completa](README-DESPLIEGUE.md)
+- 🐛 Reporta issues en el repositorio
+- 💬 Consulta los logs del sistema
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el proyecto
+2. Crea una rama para tu feature
+3. Commit tus cambios
+4. Push a la rama
+5. Abre un Pull Request
+
+---
+
+**¡Disfruta usando Flamenco Sync Studio! 🎭✨**
