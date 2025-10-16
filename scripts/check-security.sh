@@ -52,8 +52,29 @@ check_sensitive_content() {
 echo "🔍 Verificando archivos sensibles..."
 echo ""
 
-# Verificar archivos de variables de entorno
-check_sensitive_files ".env" "Archivos de variables de entorno"
+# Verificar archivos de variables de entorno (solo si no están protegidos)
+env_files=$(find . -name ".env" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null)
+if [ -n "$env_files" ]; then
+    # Verificar si están protegidos por .gitignore
+    protected=true
+    while IFS= read -r file; do
+        if ! git check-ignore "$file" >/dev/null 2>&1; then
+            protected=false
+            break
+        fi
+    done <<< "$env_files"
+    
+    if [ "$protected" = true ]; then
+        echo "✅ Archivos .env: Encontrados pero protegidos por .gitignore"
+    else
+        echo "❌ Archivos .env encontrados (no protegidos):"
+        echo "$env_files" | while read file; do
+            echo "   $file"
+        done
+    fi
+else
+    echo "✅ Archivos .env: No encontrados"
+fi
 check_sensitive_files ".env.local" "Archivos .env.local"
 check_sensitive_files ".env.production" "Archivos .env.production"
 check_sensitive_files "*.key" "Archivos de claves"
@@ -128,9 +149,21 @@ echo ""
 issues=0
 
 # Verificar archivos sensibles
-if find . -name ".env" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null | grep -q .; then
-    echo "❌ Problema: Archivos .env encontrados"
-    ((issues++))
+env_files=$(find . -name ".env" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null)
+if [ -n "$env_files" ]; then
+    # Solo contar como problema si no están protegidos
+    protected=true
+    while IFS= read -r file; do
+        if ! git check-ignore "$file" >/dev/null 2>&1; then
+            protected=false
+            break
+        fi
+    done <<< "$env_files"
+    
+    if [ "$protected" = false ]; then
+        echo "❌ Problema: Archivos .env encontrados (no protegidos)"
+        ((issues++))
+    fi
 fi
 
 if find . -name "*.key" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null | grep -q .; then
