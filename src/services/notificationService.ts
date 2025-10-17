@@ -229,25 +229,26 @@ class NotificationService {
     try {
       console.log('📧 Enviando email real...');
       
-      // Llamar a la Edge Function para enviar email
-      const { data, error } = await supabase.functions.invoke('send-email', {
-        body: {
+      // Usar proxy local para evitar CORS
+      const response = await fetch('http://localhost:3002/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           to: notification.recipient,
           subject: notification.subject || 'Notificación FlamencoPuro',
-          content: notification.content
-        }
+          content: notification.content,
+        }),
       });
 
-      if (error) {
-        console.error('❌ Error enviando email:', error.message);
-        return false;
-      }
+      const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         console.log('✅ Email enviado correctamente:', data.messageId);
         return true;
       } else {
-        console.error('❌ Error en respuesta:', data.error);
+        console.error('❌ Error enviando email:', data.error);
         return false;
       }
     } catch (error) {
@@ -257,39 +258,59 @@ class NotificationService {
   }
 
   private async sendSMS(notification: NotificationData): Promise<boolean> {
-    // Simular envío de SMS (para evitar problemas de CORS)
-    console.log('📱 Simulando envío de SMS:');
-    console.log('   Destinatario:', notification.recipient);
-    console.log('   Contenido:', notification.content);
-    
-    // En un entorno de producción, esto llamaría a una Edge Function de Supabase
-    // que manejaría el envío real del SMS desde el servidor
-    
-    return true;
+    try {
+      console.log('📱 Enviando SMS real...');
+      
+      // Usar proxy local para evitar CORS
+      const response = await fetch('http://localhost:3002/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: notification.recipient,
+          content: notification.content,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        console.log('✅ SMS enviado correctamente:', data.messageId);
+        return true;
+      } else {
+        console.error('❌ Error enviando SMS:', data.error);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error general enviando SMS:', error);
+      return false;
+    }
   }
 
   private async sendWhatsApp(notification: NotificationData): Promise<boolean> {
     try {
       console.log('💬 Enviando WhatsApp real...');
       
-      // Llamar a la Edge Function para enviar WhatsApp
-      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: {
+      // Usar proxy local para evitar CORS
+      const response = await fetch('http://localhost:3002/send-whatsapp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           to: notification.recipient,
-          content: notification.content
-        }
+          content: notification.content,
+        }),
       });
 
-      if (error) {
-        console.error('❌ Error enviando WhatsApp:', error.message);
-        return false;
-      }
+      const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         console.log('✅ WhatsApp enviado correctamente:', data.messageId);
         return true;
       } else {
-        console.error('❌ Error en respuesta:', data.error);
+        console.error('❌ Error enviando WhatsApp:', data.error);
         return false;
       }
     } catch (error) {

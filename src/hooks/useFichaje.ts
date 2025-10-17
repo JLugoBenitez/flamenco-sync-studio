@@ -4,39 +4,64 @@ import { toast } from "sonner";
 
 interface FichajeActivo {
   id: string;
-  empleado_id: string | null;
+  empleado_id: string;
+  empleado_nombre: string;
   fecha_entrada: string;
   fecha_salida: string | null;
   horas_trabajadas: number | null;
 }
 
+interface Fichaje {
+  id: string;
+  empleado_id: string;
+  empleado_nombre: string;
+  fecha_entrada: string;
+  fecha_salida: string | null;
+  horas_trabajadas: number | null;
+  fecha: string;
+}
+
 export const useFichaje = () => {
   const [fichajeActivo, setFichajeActivo] = useState<FichajeActivo | null>(null);
+  const [fichajes, setFichajes] = useState<Fichaje[]>([]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   const checkFichajeActivo = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase.rpc('get_active_fichaje', {
-        p_user_id: user.id
-      });
+      const { data, error } = await supabase.rpc('get_active_fichaje_mejorado');
 
       if (error) {
         console.error("Error al verificar fichaje activo:", error);
         return;
       }
 
-      // Las funciones retornan JSON envuelto en pgrst_call
-      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
-        setFichajeActivo(data[0].pgrst_call);
+      if (data && !data.error) {
+        setFichajeActivo(data);
       } else {
         setFichajeActivo(null);
       }
     } catch (error) {
       console.error("Error en checkFichajeActivo:", error);
+    }
+  };
+
+  const cargarFichajes = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_fichajes_usuario');
+
+      if (error) {
+        console.error("Error al cargar fichajes:", error);
+        return;
+      }
+
+      if (data && !data.error) {
+        setFichajes(data);
+      } else {
+        setFichajes([]);
+      }
+    } catch (error) {
+      console.error("Error en cargarFichajes:", error);
     }
   };
 
@@ -50,15 +75,7 @@ export const useFichaje = () => {
     setProcessing(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("No hay usuario autenticado");
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('fichar_entrada', {
-        p_empleado_id: null
-      });
+      const { data, error } = await supabase.rpc('fichar_entrada_mejorada');
 
       if (error) {
         console.error("Error al fichar entrada:", error);
@@ -66,11 +83,12 @@ export const useFichaje = () => {
         return;
       }
 
-      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
-        toast.success("Entrada registrada correctamente");
-        setFichajeActivo(data[0].pgrst_call);
+      if (data && data.success) {
+        toast.success(`Entrada registrada correctamente - ${data.empleado_nombre}`);
+        setFichajeActivo(data);
+        await cargarFichajes(); // Recargar lista de fichajes
       } else {
-        toast.error(data?.[0]?.pgrst_call?.error || "Error al registrar entrada");
+        toast.error(data?.error || "Error al registrar entrada");
       }
     } catch (error) {
       console.error("Error en ficharEntrada:", error);
@@ -91,13 +109,7 @@ export const useFichaje = () => {
     setProcessing(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("No hay usuario autenticado");
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('fichar_salida');
+      const { data, error } = await supabase.rpc('fichar_salida_mejorada');
 
       if (error) {
         console.error("Error al fichar salida:", error);
@@ -105,11 +117,13 @@ export const useFichaje = () => {
         return;
       }
 
-      if (data && Array.isArray(data) && data.length > 0 && data[0]?.pgrst_call && !data[0].pgrst_call.error) {
-        toast.success("Salida registrada correctamente");
+      if (data && data.success) {
+        const horas = data.horas_trabajadas ? data.horas_trabajadas.toFixed(2) : '0.00';
+        toast.success(`Salida registrada correctamente - ${data.empleado_nombre} (${horas}h)`);
         setFichajeActivo(null);
+        await cargarFichajes(); // Recargar lista de fichajes
       } else {
-        toast.error(data?.[0]?.pgrst_call?.error || "Error al registrar salida");
+        toast.error(data?.error || "Error al registrar salida");
       }
     } catch (error) {
       console.error("Error en ficharSalida:", error);
@@ -120,16 +134,56 @@ export const useFichaje = () => {
     }
   };
 
+  const eliminarFichaje = async (fichajeId: string) => {
+    if (processing || loading) {
+      toast.error("Ya se está procesando una acción");
+      return;
+    }
+    
+    setLoading(true);
+    setProcessing(true);
+    
+    try {
+      const { data, error } = await supabase.rpc('eliminar_fichaje', {
+        p_fichaje_id: fichajeId
+      });
+
+      if (error) {
+        console.error("Error al eliminar fichaje:", error);
+        toast.error(`Error al eliminar fichaje: ${error.message}`);
+        return;
+      }
+
+      if (data && data.success) {
+        toast.success("Fichaje eliminado correctamente");
+        await cargarFichajes(); // Recargar lista de fichajes
+        await checkFichajeActivo(); // Verificar si hay fichaje activo
+      } else {
+        toast.error(data?.error || "Error al eliminar fichaje");
+      }
+    } catch (error) {
+      console.error("Error en eliminarFichaje:", error);
+      toast.error("Error al eliminar fichaje");
+    } finally {
+      setLoading(false);
+      setProcessing(false);
+    }
+  };
+
   useEffect(() => {
     checkFichajeActivo();
+    cargarFichajes();
   }, []);
 
   return {
     fichajeActivo,
+    fichajes,
     loading,
     ficharEntrada,
     ficharSalida,
-    checkFichajeActivo
+    eliminarFichaje,
+    checkFichajeActivo,
+    cargarFichajes
   };
 };
 

@@ -27,11 +27,13 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
 
   const handleFicharEntrada = async () => {
     await ficharEntrada();
+    // onUpdate se llama automáticamente en el hook useFichaje
     onUpdate();
   };
 
   const handleFicharSalida = async () => {
     await ficharSalida();
+    // onUpdate se llama automáticamente en el hook useFichaje
     onUpdate();
   };
 
@@ -104,7 +106,14 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center gap-3">
             <User className="h-5 w-5 text-muted-foreground" />
-            <span className="font-medium">Estado:</span>
+            <div>
+              <span className="font-medium">Estado:</span>
+              {fichajeActivo && (
+                <div className="text-sm text-muted-foreground">
+                  {fichajeActivo.empleado_nombre}
+                </div>
+              )}
+            </div>
           </div>
           <Badge 
             variant={fichajeActivo ? "default" : "secondary"}

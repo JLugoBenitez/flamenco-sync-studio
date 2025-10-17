@@ -1,42 +1,13 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { FichajeActual } from "./FichajeActual";
-import { useAuth } from "@/contexts/AuthContext";
+import { useFichaje } from "@/hooks/useFichaje";
+import { Trash2 } from "lucide-react";
 
 const Fichajes = () => {
-  const [fichajes, setFichajes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { isAdmin, user } = useAuth();
-
-  useEffect(() => {
-    cargarFichajes();
-  }, []);
-
-  const cargarFichajes = async () => {
-    setLoading(true);
-    
-    let query = supabase
-      .from("fichajes")
-      .select("*")
-      .order("fecha_entrada", { ascending: false });
-
-    if (!isAdmin && user) {
-      query = query.eq("empleado_id", user.id);
-    }
-
-    const { data, error } = await query.limit(50);
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setFichajes(data || []);
-    }
-    setLoading(false);
-  };
+  const { fichajes, loading, eliminarFichaje, cargarFichajes } = useFichaje();
 
   return (
     <div className="space-y-6">
@@ -59,34 +30,35 @@ const Fichajes = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                {isAdmin && <TableHead>Empleado</TableHead>}
+                <TableHead>Empleado</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Entrada</TableHead>
                 <TableHead>Salida</TableHead>
                 <TableHead className="text-right">Horas</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     Cargando fichajes...
                   </TableCell>
                 </TableRow>
               ) : fichajes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No hay fichajes registrados
                   </TableCell>
                 </TableRow>
               ) : (
                 fichajes.map((fichaje) => (
                   <TableRow key={fichaje.id}>
-                    {isAdmin && <TableCell className="font-medium">{fichaje.empleado_id?.substring(0, 8) || "N/A"}</TableCell>}
+                    <TableCell className="font-medium">{fichaje.empleado_nombre}</TableCell>
                     <TableCell>
-                      {fichaje.fecha_entrada ? 
-                        new Date(fichaje.fecha_entrada).toLocaleDateString('es-ES') : 
+                      {fichaje.fecha ? 
+                        new Date(fichaje.fecha).toLocaleDateString('es-ES') : 
                         '-'
                       }
                     </TableCell>
@@ -120,6 +92,16 @@ const Fichajes = () => {
                       ) : (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">En curso</Badge>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => eliminarFichaje(fichaje.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

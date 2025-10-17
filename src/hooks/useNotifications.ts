@@ -4,70 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useNotifications = () => {
   useEffect(() => {
-    // Configurar listeners para cambios en la base de datos
-    const setupNotificationListeners = () => {
-      // Listener para encargos
-      const encargosSubscription = supabase
-        .channel('encargos_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'encargos',
-            filter: 'estado=eq.listo'
-          },
-          async (payload) => {
-            console.log('Encargo listo detectado:', payload);
-            await handleEncargoListo(payload.new);
-          }
-        )
-        .subscribe();
-
-      // Listener para productos con stock bajo
-      const productosSubscription = supabase
-        .channel('productos_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'productos'
-          },
-          async (payload) => {
-            console.log('Producto actualizado:', payload);
-            await handleStockBajo(payload.new);
-          }
-        )
-        .subscribe();
-
-      // Listener para incidencias
-      const incidenciasSubscription = supabase
-        .channel('incidencias_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'incidencias'
-          },
-          async (payload) => {
-            console.log('Nueva incidencia detectada:', payload);
-            await handleNuevaIncidencia(payload.new);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        encargosSubscription.unsubscribe();
-        productosSubscription.unsubscribe();
-        incidenciasSubscription.unsubscribe();
-      };
-    };
-
-    const cleanup = setupNotificationListeners();
-
-    return cleanup;
+    // Notificaciones deshabilitadas temporalmente para evitar errores de WebSocket
+    console.log('🔕 Notificaciones en tiempo real deshabilitadas (WebSocket no disponible)');
+    
+    // Retornar función de limpieza vacía
+    return () => {};
   }, []);
 
   const handleEncargoListo = async (encargo: any) => {
