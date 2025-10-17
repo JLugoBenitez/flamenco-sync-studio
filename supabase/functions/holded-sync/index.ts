@@ -17,24 +17,34 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, invoiceData, clientData } = await req.json();
+    const { action, invoiceData, clientData, facturaId } = await req.json();
     console.log('Holded sync action:', action);
 
-    // Obtener API key de Holded
-    const { data: config } = await supabase
+    // Obtener configuración de Holded
+    const { data: configs } = await supabase
       .from('configuracion')
-      .select('valor')
-      .eq('clave', 'holded_api_key')
-      .single();
+      .select('clave, valor')
+      .in('clave', ['holded_api_key', 'holded_company_id']);
 
-    if (!config?.valor) {
-      throw new Error('Holded API key no configurada');
+    const configMap = configs?.reduce((acc, config) => {
+      acc[config.clave] = config.valor;
+      return acc;
+    }, {} as Record<string, string>) || {};
+
+    if (!configMap.holded_api_key || configMap.holded_api_key === 'tu_api_key_aqui') {
+      throw new Error('Holded API key no configurada correctamente');
     }
 
-    const holdedKey = config.valor;
+    const holdedKey = configMap.holded_api_key;
+    const companyId = configMap.holded_company_id;
 
     if (action === 'create_invoice') {
       // Crear factura en Holded
+      const holdedInvoiceData = {
+        ...invoiceData,
+        companyId: companyId || undefined
+      };
+
       const response = await fetch('https://api.holded.com/api/invoicing/v1/documents/invoice', {
         method: 'POST',
         headers: {
@@ -42,11 +52,34 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'key': holdedKey
         },
-        body: JSON.stringify(invoiceData)
+        body: JSON.stringify(holdedInvoiceData)
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
 
       const result = await response.json();
       console.log('Invoice created in Holded:', result);
+
+      // Guardar en base de datos local
+      const { error: dbError } = await supabase
+        .from('facturas')
+        .insert({
+          id: facturaId || crypto.randomUUID(),
+          tipo: invoiceData.type || 'factura',
+          cliente_id: invoiceData.customerId,
+          total: invoiceData.total,
+          estado: 'pendiente',
+          fecha: new Date().toISOString(),
+          fecha_vencimiento: invoiceData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          holded_id: result.id
+        });
+
+      if (dbError) {
+        console.error('Error saving to database:', dbError);
+      }
 
       return new Response(JSON.stringify({ success: true, invoice: result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -65,6 +98,11 @@ serve(async (req) => {
         body: JSON.stringify(clientData)
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
+
       const result = await response.json();
       console.log('Contact created in Holded:', result);
 
@@ -82,10 +120,104 @@ serve(async (req) => {
         }
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
+
       const invoices = await response.json();
       console.log('Invoices fetched from Holded:', invoices.length);
 
       return new Response(JSON.stringify({ success: true, invoices }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (action === 'create_estimate') {
+      // Crear presupuesto en Holded
+      const response = await fetch('https://api.holded.com/api/invoicing/v1/documents/estimate', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'key': holdedKey
+        },
+        body: JSON.stringify(invoiceData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Estimate created in Holded:', result);
+
+      return new Response(JSON.stringify({ success: true, estimate: result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (action === 'get_contacts') {
+      // Obtener contactos de Holded
+      const response = await fetch('https://api.holded.com/api/invoicing/v1/contacts', {
+        headers: {
+          'Accept': 'application/json',
+          'key': holdedKey
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
+
+      const contacts = await response.json();
+      console.log('Contacts fetched from Holded:', contacts.length);
+
+      return new Response(JSON.stringify({ success: true, contacts }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (action === 'sync_invoices') {
+      // Sincronizar facturas desde Holded a la base de datos local
+      const response = await fetch('https://api.holded.com/api/invoicing/v1/documents/invoice', {
+        headers: {
+          'Accept': 'application/json',
+          'key': holdedKey
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded API error: ${response.status} - ${errorText}`);
+      }
+
+      const invoices = await response.json();
+      console.log('Syncing invoices from Holded:', invoices.length);
+
+      // Sincronizar cada factura
+      for (const invoice of invoices) {
+        const { error } = await supabase
+          .from('facturas')
+          .upsert({
+            id: invoice.id,
+            tipo: 'factura',
+            cliente_id: invoice.customerId,
+            total: invoice.total,
+            estado: invoice.status === 'paid' ? 'pagada' : 'pendiente',
+            fecha: invoice.date,
+            fecha_vencimiento: invoice.dueDate,
+            holded_id: invoice.id
+          }, { onConflict: 'id' });
+
+        if (error) {
+          console.error('Error syncing invoice:', error);
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, synced: invoices.length }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }

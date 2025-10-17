@@ -27,6 +27,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { notificationService, NotificationTemplate } from '@/services/notificationService';
 import { useUserRole } from '@/hooks/useUserRole';
+import NotificationTemplates from './NotificationTemplates';
 
 interface UserPreference {
   notification_type: string;
@@ -297,55 +298,7 @@ const NotificationSettings = () => {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
-          <Card className="card-highlight">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-primary" />
-                Plantillas de Notificación
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {templates.map((template) => (
-                  <div key={template.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          {getChannelIcon(template.channel)}
-                          {getChannelName(template.channel)}
-                        </Badge>
-                        <h3 className="font-semibold">{template.name}</h3>
-                      </div>
-                      <Badge variant="secondary">{template.type}</Badge>
-                    </div>
-                    
-                    {template.subject && (
-                      <p className="text-sm text-muted-foreground mb-2">
-                        <strong>Asunto:</strong> {template.subject}
-                      </p>
-                    )}
-                    
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <p className="text-sm whitespace-pre-line">{template.content}</p>
-                    </div>
-                    
-                    {template.variables.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs text-muted-foreground mb-1">Variables disponibles:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {template.variables.map((variable) => (
-                            <Badge key={variable} variant="outline" className="text-xs">
-                              {`{{${variable}}}`}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <NotificationTemplates />
         </TabsContent>
 
         <TabsContent value="test" className="space-y-6">

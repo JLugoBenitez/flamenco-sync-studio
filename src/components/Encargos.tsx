@@ -3,16 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2, ShoppingCart, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { Edit, Trash2, ShoppingCart, Clock, CheckCircle, AlertCircle, TrendingUp, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { EncargosForm } from "./EncargosForm";
 import { WooCommerceOrderSync } from "./WooCommerceOrderSync";
 import { useUserRole } from "@/hooks/useUserRole";
+import FacturaForm from "./FacturaForm";
 
 const Encargos = () => {
   const [encargos, setEncargos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFacturaForm, setShowFacturaForm] = useState(false);
+  const [selectedEncargo, setSelectedEncargo] = useState<any>(null);
   const { isAdmin } = useUserRole();
 
   useEffect(() => {
@@ -35,6 +38,11 @@ const Encargos = () => {
       setEncargos(data || []);
     }
     setLoading(false);
+  };
+
+  const crearFacturaDesdeEncargo = (encargo: any) => {
+    setSelectedEncargo(encargo);
+    setShowFacturaForm(true);
   };
 
   const eliminarEncargo = async (id: number) => {
@@ -253,6 +261,15 @@ const Encargos = () => {
                       <TableCell className="text-right font-bold text-primary">{parseFloat(encargo.precio_total).toFixed(2)}€</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 hover:bg-green-500 hover:text-white transition-colors"
+                            onClick={() => crearFacturaDesdeEncargo(encargo)}
+                            title="Crear factura"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
                           <EncargosForm 
                             encargo={encargo}
                             onSuccess={cargarEncargos}
@@ -282,6 +299,26 @@ const Encargos = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de creación de factura */}
+      {showFacturaForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <FacturaForm
+              encargo={selectedEncargo}
+              onClose={() => {
+                setShowFacturaForm(false);
+                setSelectedEncargo(null);
+              }}
+              onSuccess={() => {
+                cargarEncargos();
+                setShowFacturaForm(false);
+                setSelectedEncargo(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
