@@ -161,8 +161,8 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
               <div className="text-center">
                 <div className="text-sm text-blue-600 font-medium">Entrada</div>
                 <div className="text-lg font-mono font-bold text-blue-800">
-                  {fichajeActivo.fecha_entrada ? 
-                    new Date(fichajeActivo.fecha_entrada).toLocaleTimeString('es-ES', { 
+                  {fichajeActivo.hora_entrada ? 
+                    new Date(`2000-01-01T${fichajeActivo.hora_entrada}`).toLocaleTimeString('es-ES', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
                     }) : 
@@ -174,8 +174,8 @@ export const FichajeActual = ({ onUpdate }: { onUpdate: () => void }) => {
               <div className="text-center">
                 <div className="text-sm text-blue-600 font-medium">Tiempo transcurrido</div>
                 <div className="text-lg font-mono font-bold text-blue-800">
-                  {fichajeActivo.fecha_entrada ? 
-                    calculateElapsedTime(fichajeActivo.fecha_entrada) : 
+                  {fichajeActivo.hora_entrada ? 
+                    calculateElapsedTime(`2000-01-01T${fichajeActivo.hora_entrada}`) : 
                     '00:00:00'
                   }
                 </div>

@@ -26,8 +26,10 @@ export function useUserRole() {
       if (error && error.code !== 'PGRST116') {
         console.error('Error al obtener rol del usuario:', error);
         setRole(null);
+      } else if (data && 'role' in data) {
+        setRole(data.role as UserRole);
       } else {
-        setRole(data?.role as UserRole);
+        setRole(null);
       }
     } catch (error) {
       console.error('Error al verificar rol:', error);
@@ -66,7 +68,7 @@ export function useUserRole() {
         _role: requiredRole
       });
 
-      return !error && data === true;
+      return !error && Boolean(data);
     } catch {
       return false;
     }

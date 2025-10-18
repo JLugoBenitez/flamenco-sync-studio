@@ -220,3 +220,4 @@ setInterval(processNotifications, PROCESSING_INTERVAL);
 // Procesar inmediatamente al inicio
 processNotifications();
 
+

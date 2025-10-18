@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Mail, Phone, Shield, AlertCircle, Users, UserCheck, UserX } from "lucide-react";
+import { Plus, Mail, Phone, Shield, AlertCircle, Users, UserCheck, UserX, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin";
 import { toast } from "@/hooks/use-toast";
 import { EmpleadoForm } from "./EmpleadoForm";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -69,6 +70,40 @@ const Empleados = () => {
         return <Badge className="bg-secondary">Cliente</Badge>;
       default:
         return <Badge variant="outline">{rol}</Badge>;
+    }
+  };
+
+  const eliminarEmpleado = async (empleadoId: string, userId: string) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar este empleado? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      // Eliminar perfil usando cliente normal
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", empleadoId);
+
+      if (profileError) throw profileError;
+
+      // Eliminar rol usando cliente normal
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (roleError) throw roleError;
+
+      // Eliminar usuario de auth usando cliente de administración
+      const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+      if (authError) throw authError;
+
+      toast({ title: "Empleado eliminado correctamente" });
+      cargarEmpleados();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -139,6 +174,14 @@ const Empleados = () => {
                       {getRolBadge(empleado.user_roles)}
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => eliminarEmpleado(empleado.id, empleado.user_id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">

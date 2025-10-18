@@ -4,17 +4,21 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Edit, Trash2, AlertTriangle, Package, TrendingUp, DollarSign, Plus } from "lucide-react";
+import { Search, Edit, Trash2, AlertTriangle, Package, TrendingUp, DollarSign, Plus, RefreshCw, Upload, Download, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ProductoForm } from "./ProductoForm";
 import { WooCommerceSync } from "./WooCommerceSync";
 import { useUserRole } from "@/hooks/useUserRole";
+import holdedService from "@/services/holdedService";
 
 const Productos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncingToHolded, setSyncingToHolded] = useState(false);
+  const [syncingFromHolded, setSyncingFromHolded] = useState(false);
+  const [holdedProducts, setHoldedProducts] = useState<any[]>([]);
   const { isAdmin } = useUserRole();
 
   useEffect(() => {
@@ -94,6 +98,143 @@ const Productos = () => {
     }
   };
 
+  const sincronizarProductosAHolded = async () => {
+    if (!isAdmin) {
+      toast({ 
+        title: "Permiso denegado", 
+        description: "Solo los administradores pueden sincronizar productos",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setSyncingToHolded(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const producto of productos) {
+        try {
+          const holdedProductData = {
+            name: producto.nombre,
+            desc: producto.descripcion || '',
+            subtotal: producto.precio || 0,
+            tax: 21, // IVA por defecto
+            sku: producto.sku || `PROD-${producto.id.slice(0, 8)}`,
+            cost: producto.precio || 0,
+            purchasePrice: producto.precio || 0
+          };
+
+          const result = await holdedService.createProduct(holdedProductData);
+          
+          if (result.success) {
+            // Actualizar el producto local con el ID de Holded
+            await supabase
+              .from('productos')
+              .update({ holded_id: result.product.id })
+              .eq('id', producto.id);
+            
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          console.error(`Error sincronizando producto ${producto.nombre}:`, error);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "Sincronización completada",
+        description: `${successCount} productos sincronizados exitosamente. ${errorCount} errores.`
+      });
+
+      cargarProductos();
+    } catch (error: any) {
+      toast({
+        title: "Error en sincronización",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSyncingToHolded(false);
+    }
+  };
+
+  const sincronizarProductosDesdeHolded = async () => {
+    if (!isAdmin) {
+      toast({ 
+        title: "Permiso denegado", 
+        description: "Solo los administradores pueden sincronizar productos",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setSyncingFromHolded(true);
+    try {
+      const result = await holdedService.getProducts();
+      
+      if (result.success) {
+        setHoldedProducts(result.products || []);
+        toast({
+          title: "Productos obtenidos de Holded",
+          description: `Se obtuvieron ${result.products?.length || 0} productos de Holded`
+        });
+      } else {
+        throw new Error(result.error || 'Error obteniendo productos de Holded');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error obteniendo productos de Holded",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSyncingFromHolded(false);
+    }
+  };
+
+  const actualizarProductoEnHolded = async (producto: any) => {
+    if (!producto.holded_id) {
+      toast({
+        title: "Error",
+        description: "Este producto no está sincronizado con Holded",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const holdedProductData = {
+        name: producto.nombre,
+        desc: producto.descripcion || '',
+        subtotal: producto.precio || 0,
+        tax: 21,
+        sku: producto.sku || `PROD-${producto.id.slice(0, 8)}`,
+        cost: producto.precio || 0,
+        purchasePrice: producto.precio || 0
+      };
+
+      const result = await holdedService.updateProduct(producto.holded_id, holdedProductData);
+      
+      if (result.success) {
+        toast({
+          title: "Producto actualizado en Holded",
+          description: "El producto se ha actualizado correctamente en Holded"
+        });
+      } else {
+        throw new Error(result.error || 'Error actualizando producto en Holded');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error actualizando producto en Holded",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStockBadge = (stock: number) => {
     if (stock === 0) return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />Sin Stock</Badge>;
     if (stock <= 3) return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Bajo</Badge>;
@@ -120,6 +261,39 @@ const Productos = () => {
       </div>
 
       {isAdmin && <WooCommerceSync onSyncComplete={cargarProductos} />}
+
+      {/* Sincronización con Holded */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Sincronización con Holded
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={sincronizarProductosAHolded}
+                disabled={syncingToHolded}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {syncingToHolded ? 'Sincronizando...' : 'Subir a Holded'}
+              </Button>
+              <Button 
+                onClick={sincronizarProductosDesdeHolded}
+                disabled={syncingFromHolded}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {syncingFromHolded ? 'Obteniendo...' : 'Obtener de Holded'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Estadísticas de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -201,13 +375,14 @@ const Productos = () => {
                   <TableHead className="font-semibold text-right">Precio</TableHead>
                   <TableHead className="font-semibold text-center">Stock</TableHead>
                   <TableHead className="font-semibold text-center">Estado</TableHead>
+                  <TableHead className="font-semibold text-center">Holded</TableHead>
                   <TableHead className="font-semibold text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={8} className="text-center py-12">
                       <div className="flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         <p className="text-muted-foreground">Cargando productos...</p>
@@ -216,7 +391,7 @@ const Productos = () => {
                   </TableRow>
                 ) : productosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={8} className="text-center py-12">
                       <div className="flex flex-col items-center gap-2">
                         <Package className="h-12 w-12 text-muted-foreground" />
                         <p className="text-muted-foreground">No se encontraron productos</p>
@@ -236,6 +411,19 @@ const Productos = () => {
                       <TableCell className="text-right font-bold text-primary">{producto.precio}€</TableCell>
                       <TableCell className="text-center font-semibold">{producto.stock}</TableCell>
                       <TableCell className="text-center">{getStockBadge(producto.stock)}</TableCell>
+                      <TableCell className="text-center">
+                        {producto.holded_id ? (
+                          <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                            <Check className="h-3 w-3 mr-1" />
+                            Sincronizado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <X className="h-3 w-3 mr-1" />
+                            Pendiente
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <ProductoForm 
@@ -247,6 +435,17 @@ const Productos = () => {
                               </Button>
                             }
                           />
+                          {isAdmin && producto.holded_id && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 hover:bg-blue-500 hover:text-white transition-colors"
+                              onClick={() => actualizarProductoEnHolded(producto)}
+                              title="Actualizar en Holded"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          )}
                           {isAdmin && (
                             <Button 
                               variant="outline" 
@@ -267,6 +466,46 @@ const Productos = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Productos de Holded */}
+      {holdedProducts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              Productos de Holded
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold">Nombre</TableHead>
+                    <TableHead className="font-semibold">Descripción</TableHead>
+                    <TableHead className="font-semibold text-right">Precio</TableHead>
+                    <TableHead className="font-semibold">SKU</TableHead>
+                    <TableHead className="font-semibold text-center">Estado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {holdedProducts.map((producto) => (
+                    <TableRow key={producto.id}>
+                      <TableCell className="font-medium">{producto.name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{producto.desc || '-'}</TableCell>
+                      <TableCell className="text-right font-bold">{producto.subtotal}€</TableCell>
+                      <TableCell className="text-sm">{producto.sku || '-'}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline">Activo</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

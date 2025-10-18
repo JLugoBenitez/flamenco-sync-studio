@@ -6,19 +6,22 @@ interface FichajeActivo {
   id: string;
   empleado_id: string;
   empleado_nombre: string;
-  fecha_entrada: string;
-  fecha_salida: string | null;
+  fecha: string;
+  hora_entrada: string;
+  hora_salida: string | null;
   horas_trabajadas: number | null;
+  created_at: string;
 }
 
 interface Fichaje {
   id: string;
   empleado_id: string;
   empleado_nombre: string;
-  fecha_entrada: string;
-  fecha_salida: string | null;
-  horas_trabajadas: number | null;
   fecha: string;
+  hora_entrada: string;
+  hora_salida: string | null;
+  horas_trabajadas: number | null;
+  created_at: string;
 }
 
 export const useFichaje = () => {
@@ -29,15 +32,20 @@ export const useFichaje = () => {
 
   const checkFichajeActivo = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_active_fichaje_mejorado');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase.rpc('get_active_fichaje_mejorado', {
+        usuario_id: user.id
+      });
 
       if (error) {
         console.error("Error al verificar fichaje activo:", error);
         return;
       }
 
-      if (data && !data.error) {
-        setFichajeActivo(data);
+      if (data && data.length > 0) {
+        setFichajeActivo(data[0]);
       } else {
         setFichajeActivo(null);
       }
@@ -48,14 +56,19 @@ export const useFichaje = () => {
 
   const cargarFichajes = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_fichajes_usuario');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase.rpc('get_fichajes_usuario', {
+        usuario_id: user.id
+      });
 
       if (error) {
         console.error("Error al cargar fichajes:", error);
         return;
       }
 
-      if (data && !data.error) {
+      if (data && data.length > 0) {
         setFichajes(data);
       } else {
         setFichajes([]);
@@ -75,7 +88,15 @@ export const useFichaje = () => {
     setProcessing(true);
     
     try {
-      const { data, error } = await supabase.rpc('fichar_entrada_mejorada');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuario no autenticado");
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('fichar_entrada_mejorada', {
+        usuario_id: user.id
+      });
 
       if (error) {
         console.error("Error al fichar entrada:", error);
@@ -83,12 +104,13 @@ export const useFichaje = () => {
         return;
       }
 
-      if (data && data.success) {
-        toast.success(`Entrada registrada correctamente - ${data.empleado_nombre}`);
-        setFichajeActivo(data);
+      if (data && data.length > 0) {
+        const fichaje = data[0];
+        toast.success(`Entrada registrada correctamente - ${fichaje.empleado_nombre}`);
+        setFichajeActivo(fichaje);
         await cargarFichajes(); // Recargar lista de fichajes
       } else {
-        toast.error(data?.error || "Error al registrar entrada");
+        toast.error("Error al registrar entrada");
       }
     } catch (error) {
       console.error("Error en ficharEntrada:", error);
@@ -109,7 +131,15 @@ export const useFichaje = () => {
     setProcessing(true);
     
     try {
-      const { data, error } = await supabase.rpc('fichar_salida_mejorada');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuario no autenticado");
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('fichar_salida_mejorada', {
+        usuario_id: user.id
+      });
 
       if (error) {
         console.error("Error al fichar salida:", error);
@@ -117,13 +147,14 @@ export const useFichaje = () => {
         return;
       }
 
-      if (data && data.success) {
-        const horas = data.horas_trabajadas ? data.horas_trabajadas.toFixed(2) : '0.00';
-        toast.success(`Salida registrada correctamente - ${data.empleado_nombre} (${horas}h)`);
+      if (data && data.length > 0) {
+        const fichaje = data[0];
+        const horas = fichaje.horas_trabajadas ? fichaje.horas_trabajadas.toFixed(2) : '0.00';
+        toast.success(`Salida registrada correctamente - ${fichaje.empleado_nombre} (${horas}h)`);
         setFichajeActivo(null);
         await cargarFichajes(); // Recargar lista de fichajes
       } else {
-        toast.error(data?.error || "Error al registrar salida");
+        toast.error("Error al registrar salida");
       }
     } catch (error) {
       console.error("Error en ficharSalida:", error);
@@ -154,12 +185,12 @@ export const useFichaje = () => {
         return;
       }
 
-      if (data && data.success) {
+      if (data && data[0]?.success) {
         toast.success("Fichaje eliminado correctamente");
         await cargarFichajes(); // Recargar lista de fichajes
         await checkFichajeActivo(); // Verificar si hay fichaje activo
       } else {
-        toast.error(data?.error || "Error al eliminar fichaje");
+        toast.error(data?.[0]?.error || "Error al eliminar fichaje");
       }
     } catch (error) {
       console.error("Error en eliminarFichaje:", error);

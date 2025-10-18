@@ -106,21 +106,24 @@ const HoldedSync = () => {
 
       if (productosError) throw productosError;
 
-      setCurrentAction(`Sincronizando ${productos?.length || 0} productos con Holded...`);
+      // Filtrar productos que no están sincronizados con Holded
+      const productosNoSincronizados = productos?.filter(p => !p.holded_id) || [];
+      
+      setCurrentAction(`Sincronizando ${productosNoSincronizados.length} productos con Holded...`);
       setProgress(40);
 
       const syncResults = {
-        total: productos?.length || 0,
+        total: productosNoSincronizados.length,
         success: 0,
         errors: 0,
         details: [] as any[]
       };
-
-      // Sincronizar cada producto
-      for (let i = 0; i < (productos?.length || 0); i++) {
-        const producto = productos![i];
+      
+      // Sincronizar cada producto no sincronizado
+      for (let i = 0; i < productosNoSincronizados.length; i++) {
+        const producto = productosNoSincronizados[i];
         setCurrentAction(`Sincronizando producto: ${producto.nombre}...`);
-        setProgress(40 + (i / (productos?.length || 1)) * 40);
+        setProgress(40 + (i / productosNoSincronizados.length) * 40);
 
         try {
           // Crear producto en Holded
@@ -138,6 +141,16 @@ const HoldedSync = () => {
           const result = await holdedService.createProduct(productData);
           
           if (result && result.success) {
+            // Actualizar el holded_id en la base de datos local
+            const { error: updateError } = await supabase
+              .from('productos')
+              .update({ holded_id: result.product?.id })
+              .eq('id', producto.id);
+
+            if (updateError) {
+              console.error('Error actualizando holded_id:', updateError);
+            }
+
             syncResults.success++;
             syncResults.details.push({
               type: "success",

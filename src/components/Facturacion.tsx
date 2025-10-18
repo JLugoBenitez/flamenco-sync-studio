@@ -24,7 +24,8 @@ import {
   User,
   Building,
   CheckCircle,
-  XCircle
+  XCircle,
+  ArrowUpDown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -243,6 +244,51 @@ const Facturacion = () => {
         title: 'Error al eliminar factura',
         description: error.message,
         variant: 'destructive'
+      });
+    }
+  };
+
+  const cambiarEstadoFactura = async (factura: any, nuevoEstado: string) => {
+    try {
+      // Actualizar en base de datos local
+      const { error } = await supabase
+        .from('facturas')
+        .update({ estado: nuevoEstado })
+        .eq('id', factura.id);
+
+      if (error) throw error;
+
+      // Si la factura está sincronizada con Holded, actualizar también allí
+      if (factura.holded_id) {
+        try {
+          const holdedStatus = nuevoEstado === 'pagada' ? 1 : 0;
+          await holdedService.updateInvoiceStatus(factura.holded_id, holdedStatus);
+          
+          toast({
+            title: "Estado actualizado",
+            description: `La factura se ha marcado como ${nuevoEstado} y sincronizado con Holded`
+          });
+        } catch (holdedError) {
+          console.error('Error updating Holded:', holdedError);
+          toast({
+            title: "Estado actualizado localmente",
+            description: `La factura se ha marcado como ${nuevoEstado} localmente. Error sincronizando con Holded.`
+          });
+        }
+      } else {
+        toast({
+          title: "Estado actualizado",
+          description: `La factura se ha marcado como ${nuevoEstado}`
+        });
+      }
+
+      cargarFacturas();
+    } catch (error: any) {
+      console.error('Error al cambiar estado:', error);
+      toast({
+        title: "Error al cambiar estado",
+        description: error.message,
+        variant: "destructive",
       });
     }
   };
@@ -500,6 +546,17 @@ const Facturacion = () => {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
+                        <Select onValueChange={(value) => cambiarEstadoFactura(factura, value)}>
+                          <SelectTrigger className="w-8 h-8 p-0 border-0 bg-transparent hover:bg-gray-100">
+                            <ArrowUpDown className="h-4 w-4" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pendiente">Pendiente</SelectItem>
+                            <SelectItem value="enviada">Enviada</SelectItem>
+                            <SelectItem value="pagada">Pagada</SelectItem>
+                            <SelectItem value="vencida">Vencida</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Button 
                           variant="ghost" 
                           size="sm" 

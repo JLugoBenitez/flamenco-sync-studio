@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin";
 import { toast } from "@/hooks/use-toast";
 
 export const EmpleadoForm = ({ onSuccess }: { onSuccess: () => void }) => {
@@ -24,15 +25,14 @@ export const EmpleadoForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setLoading(true);
 
     try {
-      // Crear usuario en auth
-      const { data: userData, error: authError } = await supabase.auth.signUp({
+      // Crear usuario usando el servicio de administración para evitar cambio de sesión
+      const { data: userData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            nombre: formData.nombre,
-          },
+        user_metadata: {
+          nombre: formData.nombre,
         },
+        email_confirm: true, // Confirmar email automáticamente
       });
 
       if (authError) throw authError;
@@ -46,11 +46,13 @@ export const EmpleadoForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
         if (profileError) throw profileError;
 
-        // Asignar rol específico si es admin
-        if (formData.rol === "admin") {
+        // Asignar rol al empleado creado (el trigger ya crea rol 'empleado' por defecto)
+        // Solo actualizamos si el rol es diferente a 'empleado'
+        if (formData.rol !== "empleado") {
           const { error: roleError } = await supabase
             .from("user_roles")
-            .insert({ user_id: userData.user.id, role: "admin" });
+            .update({ role: formData.rol })
+            .eq("user_id", userData.user.id);
 
           if (roleError) throw roleError;
         }

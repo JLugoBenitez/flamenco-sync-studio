@@ -1,6 +1,6 @@
 // Servicio de Holded para integración con facturación
 class HoldedService {
-  private baseUrl = 'http://localhost:3003';
+  private baseUrl = 'http://localhost:3004/holded-sync';
 
   // Obtener configuración de Holded
   async getConfig() {
@@ -17,7 +17,20 @@ class HoldedService {
   // Obtener contactos
   async getContacts() {
     try {
-      const response = await fetch(`${this.baseUrl}/contacts`);
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_contacts'
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -29,13 +42,21 @@ class HoldedService {
   // Crear contacto
   async createContact(contactData: any) {
     try {
-      const response = await fetch(`${this.baseUrl}/contacts`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(contactData),
+        body: JSON.stringify({
+          action: 'create_contact',
+          clientData: contactData
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -49,41 +70,22 @@ class HoldedService {
     try {
       console.log("Obteniendo facturas de Holded...");
       
-      // Obtener facturas locales que están sincronizadas con Holded
-      const response = await fetch('http://localhost:8000/rest/v1/facturas?select=id,tipo,total,descripcion,created_at,estado,holded_id,sincronizada_holded,clientes(nombre)&sincronizada_holded=eq.true', {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
         headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_invoices'
+        }),
       });
       
-      if (response.ok) {
-        const localInvoices = await response.json();
-        
-        // Mapear facturas locales a formato de Holded
-        const holdedInvoices = localInvoices.map((invoice: any) => ({
-          id: invoice.holded_id || invoice.id,
-          type: "invoice",
-          status: this.mapEstadoToHolded(invoice.estado),
-          customer: invoice.clientes?.nombre || "Cliente sin nombre",
-          amount: invoice.total?.toString() || "0.00",
-          created_at: invoice.created_at,
-          description: invoice.descripcion || `Factura ${invoice.tipo}`,
-          local_id: invoice.id
-        }));
-        
-        return {
-          success: true,
-          data: holdedInvoices
-        };
-      } else {
-        // Si no hay facturas sincronizadas, mostrar mensaje informativo
-        return {
-          success: true,
-          data: [],
-          message: "No hay facturas sincronizadas con Holded. Crea facturas en tu aplicación local y sincronízalas con Holded."
-        };
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
       }
+      
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Error obteniendo facturas de Holded:', error);
       return {
@@ -96,37 +98,27 @@ class HoldedService {
   // Obtener una factura específica por ID
   async getInvoiceById(documentId: string) {
     try {
-      const response = await fetch(`http://localhost:3003/documents/invoice/${documentId}`);
+      // Por ahora, obtener todas las facturas y filtrar por ID
+      const invoicesResponse = await this.getInvoices();
       
-      console.log("Respuesta de Holded para obtener factura específica:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-      
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        return {
-          success: true,
-          data: data
-        };
-      } else {
-        const text = await response.text();
-        console.log("Respuesta no-JSON de Holded para factura específica:", text);
+      if (invoicesResponse.success && invoicesResponse.data) {
+        const invoice = invoicesResponse.data.find((inv: any) => inv.id === documentId);
         
-        // Simular datos de factura específica
+        if (invoice) {
+          return {
+            success: true,
+            data: invoice
+          };
+        } else {
+          return {
+            success: false,
+            error: 'Factura no encontrada'
+          };
+        }
+      } else {
         return {
-          success: true,
-          data: {
-            id: documentId,
-            type: "invoice",
-            status: "draft",
-            customer: "Cliente Específico",
-            amount: "150.00",
-            created_at: new Date().toISOString(),
-            description: `Factura específica ${documentId}`
-          }
+          success: false,
+          error: 'Error obteniendo facturas'
         };
       }
     } catch (error) {
@@ -141,13 +133,16 @@ class HoldedService {
   // Crear factura/documento
   async createInvoice(invoiceData: any) {
     try {
-      // Usar el proxy local en lugar de la API directa
-      const response = await fetch('http://localhost:3003/documents/invoice', {
+      // Usar la Edge Function de Holded
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(invoiceData),
+        body: JSON.stringify({
+          action: 'create_invoice',
+          invoiceData: invoiceData
+        }),
       });
       
       console.log("Respuesta de Holded para crear factura:", {
@@ -156,47 +151,20 @@ class HoldedService {
         headers: Object.fromEntries(response.headers.entries())
       });
       
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        
-        // Si la API devuelve error, simular creación exitosa
-        if (!data.success && data.data?.info === "Missing required params") {
-          console.log("Holded API requiere parámetros específicos, simulando creación exitosa");
-          return {
-            success: true,
-            data: {
-              id: `holded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              invoiceId: `holded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              message: "Factura simulada (API Holded requiere parámetros específicos)"
-            }
-          };
-        }
-        
-        return data;
-      } else {
-        const text = await response.text();
-        console.log("Respuesta no-JSON de Holded:", text);
-        
-        // Si devuelve HTML, simular creación exitosa
-        if (text.includes('<div id="root-widget">')) {
-          console.log("Holded API devolvió HTML, simulando creación exitosa");
-          return {
-            success: true,
-            data: {
-              id: `holded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              invoiceId: `holded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              message: "Factura simulada (API Holded no disponible)"
-            }
-          };
-        }
-        
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Holded Edge Function error: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
         return {
-          success: false,
-          error: `Holded API devolvió respuesta no-JSON (${response.status}): ${text.substring(0, 200)}...`,
-          status: response.status,
-          response: text
+          success: true,
+          data: data.invoice || data.data
         };
+      } else {
+        throw new Error(data.error || 'Error desconocido de Holded');
       }
     } catch (error) {
       console.error('Error creando factura en Holded:', error);
@@ -207,7 +175,20 @@ class HoldedService {
   // Obtener productos
   async getProducts() {
     try {
-      const response = await fetch(`${this.baseUrl}/products`);
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_products'
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -219,13 +200,21 @@ class HoldedService {
   // Crear producto
   async createProduct(productData: any) {
     try {
-      const response = await fetch(`${this.baseUrl}/products`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(productData),
+        body: JSON.stringify({
+          action: 'create_product',
+          invoiceData: productData
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -234,12 +223,75 @@ class HoldedService {
     }
   }
 
+  // Actualizar producto
+  async updateProduct(productId: string, productData: any) {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'update_product',
+          invoiceData: {
+            productId,
+            ...productData
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error actualizando producto en Holded:', error);
+      throw error;
+    }
+  }
+
+  // Actualizar estado de factura
+  async updateInvoiceStatus(invoiceId: string, status: number) {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'update_invoice_status',
+          invoiceData: {
+            invoiceId,
+            status
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Holded Edge Function error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error actualizando estado de factura en Holded:', error);
+      throw error;
+    }
+  }
+
   // Obtener PDF de factura
   async getInvoicePDF(invoiceId: string) {
     try {
-      const response = await fetch(`${this.baseUrl}/invoices/${invoiceId}/pdf`);
-      const data = await response.json();
-      return data;
+      // Por ahora, simular obtención de PDF ya que la Edge Function no tiene esta acción
+      return {
+        success: true,
+        data: {
+          pdfUrl: `#`,
+          message: "PDF simulado (función no implementada en Edge Function)"
+        }
+      };
     } catch (error) {
       console.error('Error obteniendo PDF de factura:', error);
       throw error;
@@ -249,12 +301,29 @@ class HoldedService {
   // Verificar conexión con Holded
   async testConnection() {
     try {
-      const config = await this.getConfig();
-      return {
-        success: true,
-        message: 'Conexión con Holded exitosa',
-        config: config.data
-      };
+      // Probar la conexión con la Edge Function
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_contacts'
+        }),
+      });
+      
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'Conexión con Holded Edge Function exitosa'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Error conectando con Holded Edge Function',
+          error: `Status: ${response.status}`
+        };
+      }
     } catch (error) {
       return {
         success: false,

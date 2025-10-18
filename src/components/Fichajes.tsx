@@ -63,8 +63,8 @@ const Fichajes = () => {
                       }
                     </TableCell>
                     <TableCell className="font-mono">
-                      {fichaje.fecha_entrada ? 
-                        new Date(fichaje.fecha_entrada).toLocaleTimeString('es-ES', { 
+                      {fichaje.hora_entrada ? 
+                        new Date(`2000-01-01T${fichaje.hora_entrada}`).toLocaleTimeString('es-ES', { 
                           hour: '2-digit', 
                           minute: '2-digit' 
                         }) : 
@@ -72,8 +72,8 @@ const Fichajes = () => {
                       }
                     </TableCell>
                     <TableCell className="font-mono">
-                      {fichaje.fecha_salida ? 
-                        new Date(fichaje.fecha_salida).toLocaleTimeString('es-ES', { 
+                      {fichaje.hora_salida ? 
+                        new Date(`2000-01-01T${fichaje.hora_salida}`).toLocaleTimeString('es-ES', { 
                           hour: '2-digit', 
                           minute: '2-digit' 
                         }) : 
@@ -87,7 +87,7 @@ const Fichajes = () => {
                       }
                     </TableCell>
                     <TableCell>
-                      {fichaje.fecha_salida ? (
+                      {fichaje.hora_salida ? (
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completado</Badge>
                       ) : (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">En curso</Badge>
