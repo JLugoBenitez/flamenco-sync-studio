@@ -79,7 +79,7 @@ if ! check_port 3004; then
     
     echo "   Iniciando Edge Function..."
     cd edge-local
-    export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+    export SUPABASE_SERVICE_ROLE_KEY="SUPABASE_SERVICE_ROLE_KEY"
     nohup node index.mjs > ../edge-function.log 2>&1 &
     cd ..
     sleep 3

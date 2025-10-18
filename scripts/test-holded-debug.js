@@ -11,7 +11,7 @@ async function testHoldedAPI() {
     const response = await fetch('https://api.holded.com/api/invoicing/v1/contacts', {
       method: 'GET',
       headers: {
-        'key': 'test-api-key-12345',
+        'key': 'HOLDED_API_KEY',
         'Content-Type': 'application/json'
       }
     });
@@ -35,7 +35,7 @@ async function testHoldedAPI() {
   console.log('\n🔍 Probando a través del proxy...');
   
   try {
-    const response = await fetch('http://localhost:3003/contacts?apiKey=test-api-key-12345');
+    const response = await fetch('http://localhost:3003/contacts?apiKey=HOLDED_API_KEY');
     const result = await response.json();
     
     console.log('Proxy response:', JSON.stringify(result, null, 2));
@@ -46,5 +46,6 @@ async function testHoldedAPI() {
 }
 
 testHoldedAPI();
+
 
 

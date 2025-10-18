@@ -7,7 +7,7 @@ async function testSyncFactura() {
     // Obtener la factura de la base de datos
     const facturaResponse = await fetch('http://localhost:8000/rest/v1/facturas?id=eq.test-sync-123&select=*,clientes(nombre,email,telefono,direccion,cif_nif)', {
       headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
+        'apikey': 'process.env.SUPABASE_SERVICE_ROLE_KEY || "YOUR_SERVICE_ROLE_KEY"',
         'Content-Type': 'application/json'
       }
     });
@@ -60,7 +60,7 @@ async function testSyncFactura() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+          'apikey': 'process.env.SUPABASE_SERVICE_ROLE_KEY || "YOUR_SERVICE_ROLE_KEY"'
         },
         body: JSON.stringify({
           holded_id: holdedResult.data?.id,
@@ -85,5 +85,6 @@ async function testSyncFactura() {
 }
 
 testSyncFactura();
+
 
 

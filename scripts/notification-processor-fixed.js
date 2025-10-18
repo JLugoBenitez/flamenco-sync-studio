@@ -4,7 +4,7 @@
 import fetch from 'node-fetch';
 
 const SUPABASE_URL = 'http://localhost:8000';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY || "YOUR_ANON_KEY"';
 
 async function processNotifications() {
   try {
@@ -51,7 +51,7 @@ async function processNotification(notification) {
     const whatsappResponse = await fetch('https://api.twilio.com/2010-04-01/Accounts/AC123456789/Messages.json', {
       method: 'POST',
       headers: {
-        'Authorization': 'Basic ' + Buffer.from('AC123456789:your_auth_token').toString('base64'),
+        'Authorization': 'Basic ' + Buffer.from('TWILIO_ACCOUNT_SID:TWILIO_AUTH_TOKEN').toString('base64'),
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: new URLSearchParams({
@@ -135,5 +135,6 @@ async function main() {
 }
 
 main().catch(console.error);
+
 
 
