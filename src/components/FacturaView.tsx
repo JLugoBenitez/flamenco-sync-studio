@@ -20,6 +20,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import holdedService from '@/services/holdedService';
+import facturaSyncService from '@/services/facturaSyncService';
 
 interface FacturaViewProps {
   factura: any;
@@ -198,8 +199,8 @@ const FacturaView = ({ factura, onClose, onUpdate }: FacturaViewProps) => {
 
   const sincronizarConHolded = async () => {
     try {
-      const holdedId = await holdedService.syncInvoiceToHolded(factura);
-      if (holdedId) {
+      const result = await facturaSyncService.syncFacturaToHolded(factura.id);
+      if (result.success) {
         toast({
           title: 'Sincronización exitosa',
           description: 'La factura se ha sincronizado con Holded correctamente'
@@ -208,7 +209,7 @@ const FacturaView = ({ factura, onClose, onUpdate }: FacturaViewProps) => {
       } else {
         toast({
           title: 'Error de sincronización',
-          description: 'No se pudo sincronizar la factura con Holded',
+          description: result.error || 'No se pudo sincronizar la factura con Holded',
           variant: 'destructive'
         });
       }

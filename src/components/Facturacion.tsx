@@ -22,23 +22,29 @@ import {
   Trash2,
   Calendar,
   User,
-  Building
+  Building,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import HoldedConfig from "./HoldedConfig";
 import FacturaView from "./FacturaView";
+import HoldedInvoices from "./HoldedInvoices";
 import holdedService from "@/services/holdedService";
+import facturaSyncService from "@/services/facturaSyncService";
 
 const Facturacion = () => {
   const [facturas, setFacturas] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncingHolded, setSyncingHolded] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedFactura, setSelectedFactura] = useState<any>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [syncResults, setSyncResults] = useState<any>(null);
   const [formData, setFormData] = useState({
     tipo: 'factura',
     cliente_id: '',
@@ -87,10 +93,12 @@ const Facturacion = () => {
   };
 
   const sincronizarHolded = async () => {
-    setSyncing(true);
+    setSyncingHolded(true);
+    setSyncResults(null);
     try {
       // Sincronizar facturas locales con Holded
-      const result = await holdedService.syncAllInvoices();
+      const result = await facturaSyncService.syncAllFacturasToHolded();
+      setSyncResults(result);
       
       toast({ 
         title: "Sincronización completada",
@@ -105,7 +113,7 @@ const Facturacion = () => {
         variant: "destructive",
       });
     } finally {
-      setSyncing(false);
+      setSyncingHolded(false);
     }
   };
 
@@ -138,8 +146,8 @@ const Facturacion = () => {
 
       // Intentar sincronizar con Holded
       try {
-        const holdedId = await holdedService.syncInvoiceToHolded(factura);
-        if (holdedId) {
+        const syncResult = await facturaSyncService.syncFacturaToHolded(factura.id);
+        if (syncResult.success) {
           toast({ 
             title: "Factura creada y sincronizada",
             description: "La factura se ha creado y sincronizado con Holded correctamente"
@@ -267,9 +275,9 @@ const Facturacion = () => {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" className="gap-2" onClick={sincronizarHolded} disabled={syncing}>
+          <Button variant="outline" className="gap-2" onClick={sincronizarHolded} disabled={syncingHolded}>
             <Send className="h-4 w-4" />
-            {syncing ? "Sincronizando..." : "Sincronizar Holded"}
+            {syncingHolded ? "Sincronizando..." : "Sincronizar con Holded"}
           </Button>
 
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -402,14 +410,21 @@ const Facturacion = () => {
         </Card>
       </div>
 
-      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <FileText className="h-5 w-5 text-primary" />
-            Lista de Facturas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Tabs defaultValue="local" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="local">Facturas Locales</TabsTrigger>
+          <TabsTrigger value="holded">Facturas de Holded</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="local">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <FileText className="h-5 w-5 text-primary" />
+                Lista de Facturas Locales
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -420,19 +435,20 @@ const Facturacion = () => {
                 <TableHead>Vencimiento</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Sincronizado</TableHead>
                 <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     Cargando facturas...
                   </TableCell>
                 </TableRow>
               ) : facturas.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No hay facturas registradas
                   </TableCell>
                 </TableRow>
@@ -453,6 +469,19 @@ const Facturacion = () => {
                     </TableCell>
                     <TableCell className="text-right font-semibold">{parseFloat(factura.total).toFixed(2)}€</TableCell>
                     <TableCell>{getEstadoBadge(factura.estado)}</TableCell>
+                    <TableCell>
+                      {factura.sincronizada_holded ? (
+                        <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Sincronizado
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Pendiente
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
                         <Button 
@@ -487,8 +516,59 @@ const Facturacion = () => {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Resultados de sincronización */}
+          {syncResults && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Send className="h-5 w-5" />
+                  Resultados de Sincronización con Holded
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{syncResults.success}</div>
+                    <div className="text-sm text-muted-foreground">Exitosas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{syncResults.errors}</div>
+                    <div className="text-sm text-muted-foreground">Errores</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{syncResults.success + syncResults.errors}</div>
+                    <div className="text-sm text-muted-foreground">Total</div>
+                  </div>
+                </div>
+                
+                {syncResults.details.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Detalles:</h4>
+                    <div className="max-h-40 overflow-y-auto space-y-1">
+                      {syncResults.details.map((detail: any, index: number) => (
+                        <div key={index} className={`p-2 rounded text-sm ${
+                          detail.type === 'success' 
+                            ? 'bg-green-50 text-green-700 border border-green-200' 
+                            : 'bg-red-50 text-red-700 border border-red-200'
+                        }`}>
+                          {detail.message}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="holded">
+          <HoldedInvoices />
+        </TabsContent>
+      </Tabs>
 
       {/* Diálogo para ver/editar factura */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>

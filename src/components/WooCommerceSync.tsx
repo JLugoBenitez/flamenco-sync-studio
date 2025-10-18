@@ -5,7 +5,11 @@ import { RefreshCw, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-export const WooCommerceSync = () => {
+interface WooCommerceSyncProps {
+  onSyncComplete?: () => void;
+}
+
+export const WooCommerceSync = ({ onSyncComplete }: WooCommerceSyncProps) => {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
@@ -128,6 +132,11 @@ export const WooCommerceSync = () => {
         description: `${syncedCount} productos sincronizados (${createdCount} nuevos, ${updatedCount} actualizados)`
       });
       setLastSync(new Date());
+      
+      // Refrescar la lista de productos
+      if (onSyncComplete) {
+        onSyncComplete();
+      }
     } catch (error: any) {
       toast({
         title: "Error en la sincronización",

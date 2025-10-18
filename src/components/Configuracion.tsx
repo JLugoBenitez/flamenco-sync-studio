@@ -11,6 +11,8 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import NotificationSettings from "./NotificationSettings";
+import HoldedTest from "./HoldedTest";
+import HoldedSync from "./HoldedSync";
 
 const Configuracion = () => {
   const { user, isAdmin } = useAuth();
@@ -181,22 +183,27 @@ const Configuracion = () => {
 
         <TabsContent value="admin" className="space-y-6">
           {isAdmin ? (
-            <Card className="card-professional">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Administración
-                </CardTitle>
-                <CardDescription>
-                  Configuración avanzada del sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Las integraciones de WooCommerce y Holded se gestionan de forma segura en el backend por razones de seguridad.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card className="card-professional">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Otras Configuraciones
+                  </CardTitle>
+                  <CardDescription>
+                    Configuración adicional del sistema
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Configura las integraciones con servicios externos para una experiencia completa.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <HoldedTest />
+              <HoldedSync />
+            </div>
           ) : (
             <Card className="card-professional">
               <CardContent className="text-center py-12">

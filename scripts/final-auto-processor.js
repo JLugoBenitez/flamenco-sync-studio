@@ -12,7 +12,7 @@ async function processNotifications() {
 
     // Query específica para WhatsApp
     const { stdout } = await execAsync(`
-      docker exec 9493c5c63cee_flamenco_db psql -U postgres -d postgres -t -c "
+      docker exec flamenco_db psql -U postgres -d postgres -t -c "
         SELECT id, type, channel, recipient, content 
         FROM public.notification_log 
         WHERE status = 'pending' 
@@ -59,7 +59,7 @@ async function processNotifications() {
         if (whatsappData.success) {
           // Actualizar estado en la base de datos
           await execAsync(`
-            docker exec 9493c5c63cee_flamenco_db psql -U postgres -d postgres -c "
+            docker exec flamenco_db psql -U postgres -d postgres -c "
               UPDATE public.notification_log 
               SET status = 'sent', external_id = '${whatsappData.messageId}', sent_at = NOW() 
               WHERE id = '${id}';

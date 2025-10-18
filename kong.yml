@@ -2,7 +2,7 @@ _format_version: "1.1"
 
 services:
   - name: root-redirect
-    url: http://rest:3000/
+    url: http://rest:3001/
     routes:
       - name: root-redirect
         paths:
@@ -18,6 +18,50 @@ services:
           - /auth/v1/verify
     plugins:
       - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - OPTIONS
+          headers:
+            - Accept
+            - Content-Type
+            - Authorization
+            - x-client-info
+            - x-supabase-api-version
+            - content-profile
+            - x-supabase-client-info
+            - x-supabase-client-version
+            - x-supabase-client-name
+            - x-supabase-client-platform
+            - x-supabase-client-arch
+            - x-supabase-client-os
+            - x-supabase-client-os-version
+            - x-supabase-client-timezone
+            - x-supabase-client-locale
+            - x-supabase-client-timezone-offset
+            - x-supabase-client-user-agent
+            - x-supabase-client-session-id
+            - x-supabase-client-request-id
+            - x-supabase-client-trace-id
+            - x-supabase-client-span-id
+            - x-supabase-client-parent-span-id
+            - x-supabase-client-trace-flags
+            - x-supabase-client-trace-state
+            - x-supabase-client-baggage
+            - x-supabase-client-correlation-id
+            - x-supabase-client-request-time
+            - x-supabase-client-response-time
+            - x-supabase-client-duration
+            - x-supabase-client-status
+            - x-supabase-client-error
+            - x-supabase-client-warning
+            - x-supabase-client-info-extra
+            - apikey
+          credentials: true
+          max_age: 3600
 
   - name: auth-v1-open-callback
     url: http://auth:9999/callback
@@ -49,10 +93,93 @@ services:
           - /auth/v1/
     plugins:
       - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Profile
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - X-Auth-Token
+            - Authorization
+            - x-client-info
+            - x-supabase-api-version
+            - content-profile
+            - x-supabase-client-info
+            - x-supabase-client-version
+            - x-supabase-client-name
+            - x-supabase-client-platform
+            - x-supabase-client-arch
+            - x-supabase-client-os
+            - x-supabase-client-os-version
+            - x-supabase-client-timezone
+            - x-supabase-client-locale
+            - x-supabase-client-timezone-offset
+            - x-supabase-client-user-agent
+            - x-supabase-client-session-id
+            - x-supabase-client-request-id
+            - x-supabase-client-trace-id
+            - x-supabase-client-span-id
+            - x-supabase-client-parent-span-id
+            - x-supabase-client-trace-flags
+            - x-supabase-client-trace-state
+            - x-supabase-client-baggage
+            - x-supabase-client-correlation-id
+            - x-supabase-client-request-time
+            - x-supabase-client-response-time
+            - x-supabase-client-duration
+            - x-supabase-client-status
+            - x-supabase-client-error
+            - x-supabase-client-warning
+            - x-supabase-client-info-extra
+            - apikey
+            - prefer
+            - range
+            - if-match
+            - if-none-match
+            - if-modified-since
+            - if-unmodified-since
+            - x-requested-with
+            - cache-control
+            - pragma
+            - expires
+            - last-modified
+            - etag
+            - vary
+            - content-encoding
+            - content-language
+            - content-location
+            - content-disposition
+            - content-range
+            - content-security-policy
+            - x-frame-options
+            - x-content-type-options
+            - x-xss-protection
+            - strict-transport-security
+            - referrer-policy
+            - permissions-policy
+          exposed_headers:
+            - X-Auth-Token
+            - Content-Range
+            - X-Total-Count
+            - X-Content-Range
+          credentials: true
+          max_age: 3600
 
   - name: rest-v1
-    _comment: "PostgREST: /rest/v1/* -> http://rest:3000/*"
-    url: http://rest:3000/
+    _comment: "PostgREST: /rest/v1/* -> http://rest:3001/*"
+    url: http://rest:3001/
     routes:
       - name: rest-v1-all
         strip_path: true
@@ -60,6 +187,89 @@ services:
           - /rest/v1/
     plugins:
       - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Profile
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - X-Auth-Token
+            - Authorization
+            - x-client-info
+            - x-supabase-api-version
+            - content-profile
+            - x-supabase-client-info
+            - x-supabase-client-version
+            - x-supabase-client-name
+            - x-supabase-client-platform
+            - x-supabase-client-arch
+            - x-supabase-client-os
+            - x-supabase-client-os-version
+            - x-supabase-client-timezone
+            - x-supabase-client-locale
+            - x-supabase-client-timezone-offset
+            - x-supabase-client-user-agent
+            - x-supabase-client-session-id
+            - x-supabase-client-request-id
+            - x-supabase-client-trace-id
+            - x-supabase-client-span-id
+            - x-supabase-client-parent-span-id
+            - x-supabase-client-trace-flags
+            - x-supabase-client-trace-state
+            - x-supabase-client-baggage
+            - x-supabase-client-correlation-id
+            - x-supabase-client-request-time
+            - x-supabase-client-response-time
+            - x-supabase-client-duration
+            - x-supabase-client-status
+            - x-supabase-client-error
+            - x-supabase-client-warning
+            - x-supabase-client-info-extra
+            - apikey
+            - prefer
+            - range
+            - if-match
+            - if-none-match
+            - if-modified-since
+            - if-unmodified-since
+            - x-requested-with
+            - cache-control
+            - pragma
+            - expires
+            - last-modified
+            - etag
+            - vary
+            - content-encoding
+            - content-language
+            - content-location
+            - content-disposition
+            - content-range
+            - content-security-policy
+            - x-frame-options
+            - x-content-type-options
+            - x-xss-protection
+            - strict-transport-security
+            - referrer-policy
+            - permissions-policy
+          exposed_headers:
+            - X-Auth-Token
+            - Content-Range
+            - X-Total-Count
+            - X-Content-Range
+          credentials: true
+          max_age: 3600
 
   - name: realtime-v1
     _comment: "Realtime: /realtime/v1/* -> http://realtime:4000/socket/*"

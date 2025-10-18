@@ -152,7 +152,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./kong.yml:/var/lib/kong/kong.yml:ro
+      - ./kong-simple.yml:/var/lib/kong/kong.yml:ro
     depends_on:
       - auth
       - rest

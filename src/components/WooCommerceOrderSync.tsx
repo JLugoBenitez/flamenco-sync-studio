@@ -6,7 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { mapWooStatusToLocal, mapLocalStatusToWoo } from "@/lib/woocommerce-mappings";
 
-export const WooCommerceOrderSync = () => {
+interface WooCommerceOrderSyncProps {
+  onSyncComplete?: () => void;
+}
+
+export const WooCommerceOrderSync = ({ onSyncComplete }: WooCommerceOrderSyncProps) => {
   const [syncing, setSyncing] = useState(false);
   const [syncingToWoo, setSyncingToWoo] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
@@ -164,6 +168,11 @@ export const WooCommerceOrderSync = () => {
         description: `${syncedCount} pedidos sincronizados (${createdCount} nuevos, ${updatedCount} actualizados)`
       });
       setLastSync(new Date());
+      
+      // Refrescar la lista de encargos
+      if (onSyncComplete) {
+        onSyncComplete();
+      }
     } catch (error: any) {
       toast({
         title: "Error en la sincronización",

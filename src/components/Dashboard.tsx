@@ -21,9 +21,9 @@ const Dashboard = () => {
 
   const cargarEstadisticas = async () => {
     const [productosRes, encargosRes, incidenciasRes, facturasRes] = await Promise.all([
-      supabase.from("productos").select("id", { count: "exact", head: true }),
-      supabase.from("encargos").select("id", { count: "exact", head: true }).neq("estado", "entregado"),
-      supabase.from("incidencias").select("id", { count: "exact", head: true }).eq("estado", "abierta"),
+      supabase.from("productos").select("*", { count: "exact", head: true }),
+      supabase.from("encargos").select("*", { count: "exact", head: true }).neq("estado", "entregado"),
+      supabase.from("incidencias").select("*", { count: "exact", head: true }).eq("estado", "abierta"),
       supabase.from("facturas").select("total").eq("estado", "pendiente"),
     ]);
 
