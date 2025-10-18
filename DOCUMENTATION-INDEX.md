@@ -79,6 +79,7 @@
 - **Docker** → [README.md](README.md) + [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)
 - **Supabase** → [API-DOCUMENTATION.md](API-DOCUMENTATION.md)
 - **React/TypeScript** → [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Responsive Design** → [README.md](README.md) + [QUICK-START.md](QUICK-START.md)
 - **Nginx** → [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)
 - **Holded API** → [API-DOCUMENTATION.md](API-DOCUMENTATION.md)
 

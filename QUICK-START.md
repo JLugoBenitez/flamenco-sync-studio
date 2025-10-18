@@ -22,9 +22,11 @@ chmod +x start-app.sh
 ```
 
 ### 4. Acceder
-- **App**: http://localhost:8080
+- **App**: http://localhost:8080 (📱 Responsive)
 - **Usuario**: admin@admin.com
 - **Contraseña**: admin123
+
+**💡 Prueba desde tu móvil** - La app se adapta automáticamente a cualquier dispositivo
 
 ---
 

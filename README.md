@@ -41,6 +41,12 @@ Flamenco Sync Studio es una aplicación web completa de gestión empresarial que
 - Estados de fichaje actual
 - Resumen de actividades
 
+### 🎨 Interfaz de Usuario
+- **Diseño Responsive**: Optimizado para móviles, tablets y desktop
+- **UI Moderna**: Basada en shadcn/ui y Tailwind CSS
+- **Tema Oscuro/Claro**: Soporte para ambos modos
+- **Accesibilidad**: Cumple estándares de accesibilidad web
+
 ### Integraciones
 - **Holded**: Sincronización de facturas y pagos
 - **WooCommerce**: Sincronización de pedidos (opcional)
@@ -51,6 +57,7 @@ Flamenco Sync Studio es una aplicación web completa de gestión empresarial que
 - **Frontend**: React 18 + TypeScript + Vite
 - **Backend**: Supabase (PostgreSQL + PostgREST + Auth)
 - **UI**: Tailwind CSS + Radix UI + shadcn/ui
+- **Responsive**: Mobile-first design con breakpoints adaptativos
 - **Contenedores**: Docker + Docker Compose
 - **API Gateway**: Kong
 - **Integraciones**: Holded API, WooCommerce API
@@ -125,13 +132,15 @@ chmod +x start-app.sh stop-app.sh
 ```
 
 ### 5. Acceder a la aplicación
-- **Frontend**: http://localhost:8080
+- **Frontend**: http://localhost:8080 (responsive en todos los dispositivos)
 - **Supabase Studio**: http://localhost:8000
 - **Edge Function**: http://localhost:3004
 
 **Credenciales por defecto:**
 - Email: `admin@admin.com`
 - Contraseña: `admin123`
+
+**💡 Tip**: La aplicación es completamente responsive - prueba acceder desde tu móvil o tablet para ver la adaptación automática de la interfaz.
 
 ## 🐳 Despliegue con Docker
 
